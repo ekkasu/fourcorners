@@ -74,8 +74,8 @@ face the direction of travel. The swap was then reverted.
 
 ## Footballer moves (Mixamo)
 
-`footballer-moves.json` holds six animation clips retargeted onto the
-footballer rig (both kits) by `tools/retarget-mixamo.mjs`. The sources are
+`footballer-moves.json` (blue kit) and `footballer-moves-red.json` (red kit) hold six animation clips retargeted onto the
+footballer rig by `tools/retarget-mixamo.mjs`. The two models have slightly different bone rest rotations, so each gets its own retargeted copy. The sources are
 Mixamo FBX files ("Without Skin", 30 fps) in `assets-src/mixamo/`, downloaded
 on 2026-10-10 with the project owner's Adobe account:
 

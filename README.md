@@ -27,7 +27,7 @@ To play on a phone on the same Wi-Fi, open `http://<your-computer's-IP>:5173`.
 - Rivals defend their goals, press, tackle, dribble and shoot at you and at each other.
 - Choose the rival difficulty (Easy / Normal / Hard) and how many goals knock a player out (1, 2, 3 or 5).
 - Knocked-out players leave the court. Win by being the last corner standing.
-- Five arenas: Accra, Kumasi, Village, School (Ghana) and a London cage.
+- Five arenas: Accra, Kumasi, Village, School and the East Legon Cage.
 - Phones: landscape full-screen play with a joystick, SHOOT/TACKLE and SPRINT buttons.
 - Synthesized Afrobeat match music, crowd sound and effects; fans in corner colours.
 

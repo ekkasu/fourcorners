@@ -1,5 +1,6 @@
 // Retargets Mixamo FBX animations (assets-src/mixamo) onto the 24-joint vibeassets footballer rig and writes
-// public/models/footballer-moves.json, which the game loads at runtime. Run: node tools/retarget-mixamo.mjs
+// public/models/footballer-moves[-red].json, which the game loads at runtime. Each footballer model has slightly
+// different bone rest rotations, so clips are built per model. Run: node tools/retarget-mixamo.mjs blue|red (default: both)
 //
 // Method: each footballer bone is first turned so it points the same way as the matching Mixamo bone in the
 // Mixamo rest pose. Every frame, the Mixamo bone's world-space rotation away from its rest pose is then applied
@@ -11,6 +12,9 @@ const mod=p=>import(pathToFileURL(path.join(root,'node_modules/three',p)).href);
 const THREE=await mod('build/three.module.js');
 const{FBXLoader}=await mod('examples/jsm/loaders/FBXLoader.js');const{GLTFLoader}=await mod('examples/jsm/loaders/GLTFLoader.js');
 
+const MODELS=process.argv[2]?[process.argv[2]]:['blue','red'];
+if(!process.env.RETARGET_MODEL){const{execFileSync}=await import('child_process');for(const m of MODELS)execFileSync(process.execPath,[fileURLToPath(import.meta.url)],{stdio:'inherit',env:{...process.env,RETARGET_MODEL:m}});process.exit(0)}
+const MODEL=process.env.RETARGET_MODEL;console.log('--',MODEL,'footballer');
 const CLIPS=[
  {file:'Offensive Idle.fbx',name:'idle',fps:10},
  {file:'Dribble.fbx',name:'dribble',fps:30},
@@ -27,7 +31,7 @@ for(const side of ['Left','Right'])Object.assign(DIRECTION_CHILD,{[side+'Shoulde
 
 function loadFootballer(){
  // The texture is dropped so GLTFLoader can run without a DOM image decoder; only the skeleton is needed.
- const buf=fs.readFileSync(path.join(root,'public/models/footballer-blue.glb')),len=buf.readUInt32LE(12),json=JSON.parse(buf.slice(20,20+len).toString());
+ const buf=fs.readFileSync(path.join(root,`public/models/footballer-${MODEL}.glb`)),len=buf.readUInt32LE(12),json=JSON.parse(buf.slice(20,20+len).toString());
  delete json.images;delete json.textures;delete json.samplers;json.materials.forEach(m=>{delete m.pbrMetallicRoughness.baseColorTexture;delete m.emissiveTexture});
  let js=Buffer.from(JSON.stringify(json));while(js.length%4)js=Buffer.concat([js,Buffer.from(' ')]);const bin=buf.slice(20+len),header=Buffer.alloc(20);
  header.writeUInt32LE(0x46546C67,0);header.writeUInt32LE(2,4);header.writeUInt32LE(20+js.length+bin.length,8);header.writeUInt32LE(js.length,12);header.writeUInt32LE(0x4E4F534A,16);
@@ -75,5 +79,5 @@ for(const spec of CLIPS){
  }
  console.log(spec.name.padEnd(9),duration.toFixed(2)+'s',frames+' frames',spec.contact?`contact ${out.events[spec.name].contact}s ${out.events[spec.name].foot}`:'');
 }
-const file=path.join(root,'public/models/footballer-moves.json');fs.writeFileSync(file,JSON.stringify(out));
+const file=path.join(root,MODEL==='blue'?'public/models/footballer-moves.json':`public/models/footballer-moves-${MODEL}.json`);fs.writeFileSync(file,JSON.stringify(out));
 console.log('wrote',path.relative(root,file),(fs.statSync(file).size/1024).toFixed(0)+' KB');
