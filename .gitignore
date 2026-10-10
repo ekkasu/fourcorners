@@ -1,0 +1,11 @@
+node_modules/
+dist/
+# Mixamo animations may not be redistributed as raw files; rebuild clips with tools/retarget-mixamo.mjs
+assets-src/mixamo/
+# Local editor/agent config
+.claude/
+.env
+.env.*
+*.log
+.DS_Store
+Thumbs.db
