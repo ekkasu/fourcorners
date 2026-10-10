@@ -11,3 +11,38 @@
 .difficulty{margin-top:22px}.difficulty .pills{margin:10px 0 4px}.difficulty .muted{margin:6px 0 0;font-size:14px}
 .btn.off{opacity:.45}
 .app.phone-game .header,.app.phone-game .footer,.app.phone-game .eyebrow,.app.phone-game .main>h2,.app.phone-game .notice,.app.phone-game .smallprint{display:none}.app.phone-game .main{padding:0}.app.phone-game .court{position:fixed;inset:0;z-index:20;height:100dvh;min-height:0;border:0;border-radius:0}.app.phone-game .controls{position:fixed;top:8px;right:10px;z-index:30;margin:0;gap:6px}.app.phone-game .controls .btn{padding:7px 10px;font-size:12px}.app.phone-game .hud{right:auto}.app.phone-game .hud span:not(:first-child){display:none}.rotate-prompt{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:28px;text-align:center;background:#09100d}.rotate-prompt h2{font-size:34px;margin:0}.rotate-prompt p{color:#b9c8be;margin:0 0 10px;max-width:300px;line-height:1.6}.rotate-phone{font-size:64px;animation:rotate-phone 1.8s ease-in-out infinite}@keyframes rotate-phone{0%,25%{transform:rotate(0)}55%,85%{transform:rotate(-90deg)}100%{transform:rotate(0)}}@media (prefers-reduced-motion:reduce){.rotate-phone{animation:none;transform:rotate(-90deg)}}
+/* Home hero: player-profile layout */
+.header{max-width:1450px;margin:12px auto 0;width:calc(100% - 24px);border:1px solid #ffffff1f;border-radius:20px;background:#0c1017cc;top:10px}
+.account{background:#ffca0a;color:#111;border:0;border-radius:999px;padding:11px 20px;font-weight:800;font-size:14px}
+.hero-card{position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,.95fr);gap:22px;align-items:start;min-height:clamp(560px,46vw,680px);margin-top:18px;padding:clamp(28px,4vw,52px) clamp(22px,4vw,52px) 0;border-radius:28px;overflow:hidden;border:1px solid #2a2f37;background:radial-gradient(90% 70% at 50% 105%,#4a3606 0%,transparent 60%),radial-gradient(60% 55% at 88% 6%,#5c1d22 0%,transparent 62%),linear-gradient(160deg,#171c25,#0c1017 62%)}
+.hero-card-bg{position:absolute;inset:0;z-index:-2;background:url(/art/gameplay-hero.jpg) center/cover;opacity:.1;filter:grayscale(.4) blur(3px)}
+.hero-number{position:absolute;left:50%;top:46%;z-index:-1;transform:translate(-50%,-50%) rotate(-8deg);font:900 clamp(170px,22vw,330px)/1 'Barlow Condensed',sans-serif;color:#ffca0a;opacity:.15;pointer-events:none}
+.hero-title{font:800 clamp(58px,7vw,108px)/.9 'Barlow Condensed',Impact,sans-serif;margin:22px 0;color:#fff;letter-spacing:.01em}
+.hero-chips{display:flex;gap:10px;flex-wrap:wrap}
+.hero-chip{background:#ffffff12;border:1px solid #ffffff2b;border-radius:10px;padding:10px 14px;font-weight:700;font-size:13px}
+.hero-tagline{color:#c9ced6;line-height:1.65;max-width:380px;margin:18px 0 0;font-size:14px}
+.hero-arena-card{margin-top:20px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;max-width:440px;background:#0a0d13d9;border:1px solid #ffca0a4d;border-radius:14px;padding:12px 14px}
+.hero-arena-card small{display:block;font-size:9px;letter-spacing:.16em;color:#9aa3b0;margin-bottom:3px}
+.hero-arena-card strong{color:#ffca0a;font-size:15px;white-space:nowrap}
+.hero-arena-card>span{font-size:12px;color:#c9ced6}
+.hero-arrows{display:flex;gap:6px}
+.hero-arrows button{width:32px;height:32px;border-radius:50%;border:1px solid #ffffff3d;background:#ffffff12;color:#fff;font-size:18px;line-height:1}
+.hero-arrows button:hover{background:#ffca0a;color:#111}
+.hero-player{align-self:end;height:clamp(440px,40vw,600px)}
+.hero-player-canvas{width:100%!important;height:100%!important}
+.hero-stats{position:relative;margin-top:30px;background:linear-gradient(150deg,#ef4141,#a81c26);border-radius:0 18px 18px 18px;padding:22px 18px 18px;box-shadow:0 18px 40px #0008}
+.hero-stats-tab{position:absolute;top:-26px;left:0;background:#d8333b;padding:6px 16px 10px;border-radius:12px 12px 0 0;font-size:11px;letter-spacing:.06em;font-weight:700}
+.hero-stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.hero-stats-grid small{display:block;font-size:10px;letter-spacing:.08em;font-weight:800;color:#ffe3e3}
+.hero-stats-grid strong{font:700 clamp(32px,3vw,44px)/1.1 'Barlow Condensed',sans-serif;color:#ffca0a}
+.hero-info{margin:18px 0 0;background:#ffffff0d;border:1px solid #ffffff24;border-radius:18px;padding:4px 18px;backdrop-filter:blur(10px)}
+.hero-info div{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid #ffffff1c}
+.hero-info div:last-child{border-bottom:0}
+.hero-info dt{font-size:11px;letter-spacing:.1em;font-weight:800;color:#eef0f3}
+.hero-info dd{margin:0;font-size:13px;color:#c9ced6;text-align:right}
+.swatch{display:inline-block;width:22px;height:22px;border-radius:50%;border:2px solid #fff;vertical-align:middle}
+.hero-cta{position:absolute;left:0;bottom:0;display:flex;gap:10px;padding:16px 28px 16px clamp(22px,4vw,52px);background:#f4f1ea;border-radius:0 36px 0 0}
+.btn-dark{background:#0c1017;color:#fff}
+@media(max-width:1000px){.hero-card{grid-template-columns:minmax(0,1fr);padding-bottom:0;gap:8px}.hero-player{order:1;height:380px;align-self:center}.hero-right{order:2;margin-bottom:22px}.hero-cta{order:3;position:static;margin:0 calc(-1*clamp(22px,4vw,52px));border-radius:22px 22px 0 0;justify-content:center}.hero-number{top:52%}}
+@media(max-width:700px){.header{display:grid;grid-template-columns:1fr auto;align-items:center;row-gap:10px}.header .nav{grid-column:1/-1;order:3}.account{padding:8px 14px;font-size:12px}.hero-arena-card{grid-template-columns:1fr auto}.hero-arena-card>span{display:none}.hero-arena-card strong{white-space:normal}}
+.hero-cta .btn{white-space:nowrap}@media(max-width:1000px){.hero-cta .btn{flex:1}}
