@@ -15,7 +15,7 @@ const THEMES={
 const paintedCache=new Map();
 function paintDetail(source,{base=236,contrast=2.2}={}){if(paintedCache.has(source.uuid))return paintedCache.get(source.uuid);const img=source.image,canvas=document.createElement('canvas');canvas.width=img.width;canvas.height=img.height;const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0);const px=ctx.getImageData(0,0,canvas.width,canvas.height),p=px.data;let mean=0;for(let i=0;i<p.length;i+=4)mean+=(p[i]*.3+p[i+1]*.59+p[i+2]*.11);mean/=p.length/4;for(let i=0;i<p.length;i+=4){const l=(p[i]*.3+p[i+1]*.59+p[i+2]*.11),v=Math.max(0,Math.min(255,base+(l-mean)*contrast));p[i]=p[i+1]=p[i+2]=v}ctx.putImageData(px,0,0);const t=new THREE.CanvasTexture(canvas);t.colorSpace=THREE.SRGBColorSpace;paintedCache.set(source.uuid,t);return t}
 function useSurface(name,repeat,normal=false,painted=false){
- const raw=useTexture(normal?{map:`${TEX}${name}_diff_1k.jpg`,normalMap:`${TEX}${name}_nor_gl_1k.jpg`}:{map:`${TEX}${name}_diff_1k.jpg`});
+ const raw=useTexture(normal?{map:`${TEX}${name}_diff_1k.webp`,normalMap:`${TEX}${name}_nor_gl_1k.webp`}:{map:`${TEX}${name}_diff_1k.webp`});
  return useMemo(()=>Object.fromEntries(Object.entries(raw).map(([key,source])=>{const t=(painted&&key==='map'?paintDetail(source,painted===true?undefined:painted):source).clone();t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(repeat,repeat);t.anisotropy=4;if(key==='map')t.colorSpace=THREE.SRGBColorSpace;t.needsUpdate=true;return[key,t]})),[raw,repeat,painted]);
 }
 

@@ -17,6 +17,27 @@ Open `http://localhost:5173`. To try private rooms, also run `npm run server` in
 
 To play on a phone on the same Wi-Fi, open `http://<your-computer's-IP>:5173`.
 
+## Run in production
+
+```bash
+npm install
+npm run build
+npm start
+```
+
+`npm start` runs `server/index.js`, which serves the built game from `dist/` (gzip-compressed, with long caching for
+hashed files) and the multiplayer rooms on `/ws`, on `$PORT` (default 3001). `/healthz` answers `ok`.
+
+### Deploy to Render (free)
+
+`render.yaml` describes the service. On [render.com](https://render.com): **New → Blueprint**, pick this repository,
+and deploy. Every push to `main` redeploys. The free plan sleeps after about 15 minutes idle, so the first visit
+afterwards takes 30–60 seconds to wake up.
+
+### Shrinking assets
+
+`node tools/optimize-assets.mjs` converts environment textures to WebP and compresses the casual character models.
+
 ## What's playable
 
 **Free-for-All** (offline, against three AI rivals): a 3-minute match. When two corners remain it becomes a
@@ -29,6 +50,9 @@ shows your place, goals, shots, tackles won and time survived. A four-step tutor
 - Drop-ball kick-off: everyone races for the ball. Run onto it or slide-tackle to win it.
 - Dribble and sprint (sprint stamina lasts about 3 s), and hold shoot to power a shot. Shots curve with Q/E or when you shoot while running across; on phones, swipe the SHOOT button to aim. Gentle aim assist helps shots near the goal.
 - Solid goalposts, crossbar and nets; a goal needs the whole ball over the line.
+- Skill move (F, or SKILL on phones): a step-over feint that leaves nearby rivals stumbling, or a knock-on with a speed
+  burst when sprinting.
+- Rival personalities: RIVAL 1 is a Presser, RIVAL 2 a Wall, RIVAL 3 a Sniper. Rivals gang up on whoever leads on lives.
 - Shoot without the ball to slide-tackle.
 - Rivals defend their goals, press, tackle, dribble and shoot at you and at each other.
 - Choose the rival difficulty (Easy / Normal / Hard) and how many goals knock a player out (1, 2, 3 or 5).

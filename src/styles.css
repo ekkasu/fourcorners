@@ -96,3 +96,12 @@
 .tutorial-card .button-row{justify-content:center}
 .tutorial-skip{position:absolute;top:12px;right:14px;background:none;border:0;color:#9aa3b0;font-size:13px}
 @media(max-height:420px){.tutorial-card{padding:16px 18px}.tutorial-icon{font-size:36px;margin:0}.tutorial-card p{margin-bottom:8px}}
+.loading-overlay{position:absolute;inset:0;z-index:8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:20px;text-align:center;background:radial-gradient(70% 60% at 50% 40%,#1c2416,#0a0f0c 75%)}
+.loading-overlay strong{font:800 26px/1.1 'Barlow Condensed',sans-serif;letter-spacing:.04em}
+.loading-ball{font-size:42px;animation:loading-bounce .7s ease-in-out infinite alternate}
+@keyframes loading-bounce{from{transform:translateY(0) rotate(0)}to{transform:translateY(-14px) rotate(160deg)}}
+.loading-bar{width:min(320px,80%);height:10px;border-radius:10px;background:#ffffff1a;overflow:hidden}
+.loading-bar i{display:block;height:100%;background:linear-gradient(90deg,#d5ff68,#ffca0a);transition:width .2s}
+.loading-overlay small{color:#c9ced6}.loading-overlay p{color:#9aa3b0;font-size:13px;max-width:320px;margin:4px 0 0}
+@media (prefers-reduced-motion:reduce){.loading-ball{animation:none}}
+.touch-btn.skill{width:58px;height:58px;background:#2b2140e6;color:#e7dcff;border-color:#6a52a8;font-size:10px;margin-bottom:12px}.result-stats{grid-template-columns:repeat(5,minmax(0,1fr))}

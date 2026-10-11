@@ -1,1 +1,30 @@
-{"name":"four-corners-street-football","version":"0.2.0","private":true,"type":"module","scripts":{"dev":"vite --host 0.0.0.0","server":"node server/index.js","build":"vite build","preview":"vite preview --host 0.0.0.0"},"dependencies":{"@react-three/drei":"^10.0.0","@react-three/fiber":"^9.1.2","@react-three/postprocessing":"^3.1.3","postprocessing":"^6.37.6","react":"^19.0.0","react-dom":"^19.0.0","three":"^0.175.0","ws":"^8.18.1"},"devDependencies":{"@gltf-transform/cli":"^4.5.1","vite":"^6.2.5"}}
+{
+  "name": "four-corners-street-football",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "server": "node server/index.js",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "start": "node server/index.js"
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.0.0",
+    "@react-three/fiber": "^9.1.2",
+    "@react-three/postprocessing": "^3.1.3",
+    "postprocessing": "^6.37.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "three": "^0.175.0",
+    "ws": "^8.18.1"
+  },
+  "devDependencies": {
+    "@gltf-transform/cli": "^4.5.1",
+    "vite": "^6.2.5"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
