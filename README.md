@@ -28,6 +28,14 @@ npm start
 `npm start` runs `server/index.js`, which serves the built game from `dist/` (gzip-compressed, with long caching for
 hashed files) and the multiplayer rooms on `/ws`, on `$PORT` (default 3001). `/healthz` answers `ok`.
 
+### Deploy to Vercel
+
+`vercel.json` holds the build settings (`npm run build`, output `dist/`) and caching. Import the repository on
+[vercel.com](https://vercel.com); every push to `main` redeploys. Vercel serves the game but cannot run the
+multiplayer room server (it needs a long-running WebSocket server). Training and Free-for-All work fully; for
+Private Rooms, host `server/index.js` elsewhere (for example Render, below) and set the Vercel environment
+variable `VITE_ROOM_SERVER_URL` to its address, such as `wss://four-corners.onrender.com/ws`, then redeploy.
+
 ### Deploy to Render (free)
 
 `render.yaml` describes the service. On [render.com](https://render.com): **New → Blueprint**, pick this repository,
