@@ -19,10 +19,16 @@ To play on a phone on the same Wi-Fi, open `http://<your-computer's-IP>:5173`.
 
 ## What's playable
 
-**Training** (offline, against three AI rivals):
+**Free-for-All** (offline, against three AI rivals): a 3-minute match. When two corners remain it becomes a
+final showdown (next goal wins). At full time the most lives wins; tied leaders go to golden goal. A results screen
+shows your place, goals, shots, tackles won and time survived. A four-step tutorial appears on your first match
+("How to play" on the Play screen reopens it).
+
+**Training** (offline, no clock, against three AI rivals):
 
 - Drop-ball kick-off: everyone races for the ball. Run onto it or slide-tackle to win it.
-- Dribble, sprint, and hold shoot to power a shot (power and lift grow with the charge).
+- Dribble and sprint (sprint stamina lasts about 3 s), and hold shoot to power a shot. Shots curve with Q/E or when you shoot while running across; on phones, swipe the SHOOT button to aim. Gentle aim assist helps shots near the goal.
+- Solid goalposts, crossbar and nets; a goal needs the whole ball over the line.
 - Shoot without the ball to slide-tackle.
 - Rivals defend their goals, press, tackle, dribble and shoot at you and at each other.
 - Choose the rival difficulty (Easy / Normal / Hard) and how many goals knock a player out (1, 2, 3 or 5).
@@ -31,7 +37,7 @@ To play on a phone on the same Wi-Fi, open `http://<your-computer's-IP>:5173`.
 - Phones: landscape full-screen play with a joystick, SHOOT/TACKLE and SPRINT buttons.
 - Synthesized Afrobeat match music, crowd sound and effects; fans in corner colours.
 
-Free-for-All, Duo Battle and Private Room are menu prototypes. The room server handles joining and presence, but
+Duo Battle is coming soon; Private Room is a prototype. The room server handles joining and presence, but
 online play is not authoritative yet.
 
 ## Project layout
