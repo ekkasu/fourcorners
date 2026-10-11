@@ -73,6 +73,13 @@ export const music={
  toggle(){musicOn=!musicOn;try{localStorage.setItem('fc_music',musicOn?'1':'0')}catch{}if(musicBus&&timer)fade(musicBus,musicOn?.32:0,.4);return musicOn},
 };
 
+// Many people clapping at once: short noise bursts spread over a few milliseconds.
+function crowdClap(t,peak){for(let j=0;j<7;j++){const at=t+Math.random()*.035,source=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),gain=ctx.createGain();source.buffer=noiseBuffer();filter.type='bandpass';filter.frequency.value=900+Math.random()*1400;filter.Q.value=1.2;
+ envelope(gain,at,.002,peak/3.5,.07);source.connect(filter).connect(gain).connect(master);source.start(at,Math.random(),.1)}}
+// A group of voices: detuned sawtooths through two vowel formants, gliding from 1x to "rise" and settling at "fall".
+function voices(t,[f1,f2],peak,attack,release,rise,fall){const bus=ctx.createGain(),a=ctx.createBiquadFilter(),b=ctx.createBiquadFilter(),out=ctx.createGain();a.type=b.type='bandpass';a.frequency.value=f1;a.Q.value=5;b.frequency.value=f2;b.Q.value=7;bus.gain.value=.12;
+ bus.connect(a).connect(out);bus.connect(b).connect(out);envelope(out,t,attack,peak,release);out.connect(master);
+ for(let k=0;k<12;k++){const osc=ctx.createOscillator(),base=(k%2?150:230)*(1+(Math.random()-.5)*.12),start=t+Math.random()*.06;osc.type='sawtooth';osc.frequency.setValueAtTime(base,start);osc.frequency.linearRampToValueAtTime(base*rise,start+attack+.1);osc.frequency.exponentialRampToValueAtTime(base*fall,start+attack+release);osc.connect(bus);osc.start(start);osc.stop(t+attack+release+.15)}}
 // Crowd murmur under the match, slowly swelling and fading, plus a cheer for goals.
 export const crowd={
  start(){const c=audio();if(!c||ambience)return;const source=c.createBufferSource(),filter=c.createBiquadFilter(),gain=c.createGain(),lfo=c.createOscillator(),depth=c.createGain();
@@ -80,4 +87,10 @@ export const crowd={
   lfo.connect(depth).connect(gain.gain);source.connect(filter).connect(gain).connect(master);source.start();lfo.start();fade(gain,.08,1.5);ambience={source,gain,lfo}},
  stop(){if(!ambience)return;const{source,gain,lfo}=ambience;fade(gain,0,.8);source.stop(ctx.currentTime+.9);lfo.stop(ctx.currentTime+.9);ambience=null},
  cheer(){hiss('bandpass',800,.4,.15,1.4,.5)},
+ // A crowd "ooooh" for near misses: a few dozen voices gliding up and down through an "oo" vowel.
+ ooh(strength=.7){const c=audio();if(!c||muted)return;voices(c.currentTime,[380,820],.18*strength,.3,1.3,1.22,.82);hiss('bandpass',500,.1*strength,.3,1.1,.7)},
+ // Rhythmic clapping (clap, clap, clap-clap-clap) with a shout to finish, for goals and the showdown.
+ chant(delay=0){const c=audio();if(!c||muted)return;const t0=c.currentTime+delay,beat=.36;
+  for(let bar=0;bar<3;bar++)for(const b of [0,1,2,2.5,3])crowdClap(t0+(bar*4+b)*beat,bar===2?.34:.26);
+  voices(t0+11*beat+.02,[620,1750],.16,.03,.32,.96,.85);voices(t0+12*beat-.02,[620,1750],.2,.03,.45,1.04,.8)},
 };
