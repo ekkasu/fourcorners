@@ -59,18 +59,12 @@ first frame of `Walk` and faces +Z (toward the south goal and camera). Its
 controlled player in offline training. Both played and the model turned to
 face the direction of travel. The swap was then reverted.
 
-## Still missing from both footballer models
+## Still missing
 
-- No female footballer. Selecting Female still loads the casual Grab3D woman.
-- No native idle, dribble, shoot, kick, tackle or celebration clips. Idle is a
-  frozen `Walk` frame, dribbling uses the normal locomotion clips, and
-  shooting has no body animation.
-- The jersey color option does not recolor either model, because each kit is
-  baked into its texture.
-- Rivals have no AI or movement, so their locomotion clips never play in-game.
+- The vibeassets models' Walk and Run are their own clips; everything else (idle, dribble, kicks,
+  tackle, celebrations) comes from Mixamo, retargeted.
 - Online players still use the casual Grab3D man.
-- The low-poly cartoon style is the source assets' design. It does not meet the
-  original high-detail target.
+- The cartoon models (and the more realistic Shannon) do not meet the original high-detail target.
 
 ## Footballer moves (Mixamo)
 
@@ -100,6 +94,43 @@ clips. The casual Grab3D models (Female, online players) do not use these clips.
 Rerun the tool after adding or replacing FBX files:
 
     node tools/retarget-mixamo.mjs
+
+## Female footballer (Mixamo "Shannon")
+
+`footballer-female.glb` is Mixamo's **Shannon** character (white football kit: shirt, shorts, socks,
+boots), downloaded on 2026-10-11 with the project owner's Adobe account as a T-pose FBX with skin
+(`assets-src/mixamo/Shannon.fbx`, 52 MB, 145k vertices). `tools/build-female.mjs` turns it into a
+1.5 MB GLB with about 12,500 vertices:
+
+- converts FBX to glTF and scales it from centimetres to metres (1.79 m tall);
+- removes skin hidden under the clothes, then simplifies the meshes (meshoptimizer);
+- covers the "7" printed on the shirt back, since the game prints the player's own number;
+- ships the body and hair textures once each, as 1024 px WebP.
+
+Shirt, shorts, socks, boots, body and hair stay separate meshes, so the game colours each kit part
+on its own (`dressFemale` in `src/main.jsx`). Her moves are the same Mixamo clips as the male
+footballers, retargeted to her skeleton (`footballer-moves-female.json`), plus Mixamo
+**Walking Forward** and **Standard Run** for locomotion, since she has no built-in clips.
+
+Mixamo characters are free to use in games under Adobe's terms, but they are not CC0, and the
+character files must not be redistributed on their own. Shannon's style is realistic, unlike the
+cartoon footballers, so she looks more lifelike next to them.
+
+Rebuild after changing the source:
+
+    node tools/build-female.mjs
+    node tools/retarget-mixamo.mjs female
+
+## Celebrations and kit options
+
+Four more Mixamo clips are retargeted to all three footballers for the Locker's goal
+celebration choice: **Standing Backflip**, **Fist Pump** (high enthusiasm), **Rallying** (the
+crowd) and **Hip Hop Dancing** (running man). **Victory** stays the default. Each rival uses one
+of these too.
+
+Shorts, socks and boots colours, and the player's name and number on the back of the shirt, are
+applied at runtime with no extra assets. On the male model, a shader (`kitRegions`) separates the
+parts by height in the bind pose. On the female model, each part is its own mesh.
 
 ## Crowd and music
 

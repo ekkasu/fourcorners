@@ -1,4 +1,5 @@
-import React,{useMemo} from 'react';
+import React,{Suspense,useMemo} from 'react';
+import{useLoader}from'@react-three/fiber';
 import{Environment as SkyLight,Text,useGLTF,useTexture}from'@react-three/drei';
 import*as THREE from'three';
 
@@ -58,6 +59,17 @@ function PowerLine({x}){const zs=[-26,-17,-8,1,10,19,28];const cable=useMemo(()=
 
 // Real props: CC0 Poly Haven models compressed to public/models/props (see that folder's README).
 const PROP=name=>`/models/props/${name}.glb`;
+// A failed download (a network blip, a file the CDN could not serve) used to unmount the whole app. Loaders cache the
+// failure, so it is cleared before trying again; the URL is taken from three's "Could not load <url>: ..." message.
+export function forgetFailedAsset(error){const url=/Could not load (.+?):/.exec(error?.message||'')?.[1];if(!url)return;try{useGLTF.clear(url)}catch{}for(const loader of [THREE.TextureLoader,THREE.FileLoader])try{useLoader.clear(loader,url)}catch{}}
+// Decoration (each arena prop, the arena itself, the crowd, effects): play continues without it, and it is fetched again
+// in the background with growing gaps. Each prop has its own boundary, so one failure hides only that prop.
+export class AssetBoundary extends React.Component{
+ state={failed:false,attempt:0};
+ static getDerivedStateFromError(){return{failed:true}}
+ componentDidCatch(error){console.warn('Asset failed to load, retrying:',error?.message);forgetFailedAsset(error);if(this.state.attempt<8)this.timer=setTimeout(()=>this.setState(v=>({failed:false,attempt:v.attempt+1})),Math.min(30000,2000*2**this.state.attempt))}
+ componentWillUnmount(){clearTimeout(this.timer)}
+ render(){return this.state.failed?null:<React.Fragment key={this.state.attempt}>{this.props.children}</React.Fragment>}}
 function Prop({name,position,rotation=0,stack=1}){
  const{scene}=useGLTF(PROP(name));
  const copies=useMemo(()=>{const base=scene.clone(true);base.updateMatrixWorld(true);const box=new THREE.Box3().setFromObject(base),height=box.max.y-box.min.y;
@@ -98,7 +110,7 @@ function CourtBorder({type,wallTex}){const e=12.35,sides=[[0,-e,25],[0,e,25],[-e
  if(type==='logs')return <>{sides.map(([x,z,l,turn],i)=><mesh key={i} position={[x,.16,z]} rotation={turn?[Math.PI/2,0,0]:[0,0,Math.PI/2]} castShadow receiveShadow><cylinderGeometry args={[.16,.18,l,8]}/><meshStandardMaterial color="#7a5a3c" roughness={1}/></mesh>)}</>;
  const h=type==='fence'?.4:.62;
  return <>{sides.map(([x,z,l,turn],i)=><mesh key={i} position={[x,h/2,z]} castShadow receiveShadow><boxGeometry args={turn?[.25,h,l]:[l,h,.25]}/><meshStandardMaterial {...wallTex} color={type==='fence'?'#8f8f8f':'#efe6d6'} roughness={.95}/></mesh>)}
-  {type==='fence'&&<ChainLinkFence/>}
+  {type==='fence'&&<AssetBoundary><Suspense fallback={null}><ChainLinkFence/></Suspense></AssetBoundary>}
  </>}
 
 // Grass courts get mowing stripes: every other strip slightly darker.
@@ -122,7 +134,7 @@ export function ArenaEnvironment({arena}){
   {theme.palms?[[-17,-16,0],[17,-15,2],[-17.5,9,4],[17,11,1],[-15,22,3],[15.5,23,5]].map(([x,z,t],i)=><Palm key={i} position={[x,0,z]} height={5+(i%3)*.6} turn={t}/>)
    :[[-17,5],[17,5]].map(([x,z],i)=><group key={i} position={[x,0,z]}><mesh position={[0,1.2,0]}><cylinderGeometry args={[.17,.25,2.4,9]}/><meshStandardMaterial color="#594636"/></mesh><mesh position={[0,3,0]} castShadow><sphereGeometry args={[2,12,10]}/><meshStandardMaterial color="#3a633c"/></mesh><mesh position={[.6,3.9,.3]} castShadow><sphereGeometry args={[1.3,12,10]}/><meshStandardMaterial color="#44733f"/></mesh></group>)}
   {theme.poles&&<><PowerLine x={-15.5}/><PowerLine x={15.5}/></>}
-  {(PROP_SETS[arena.id]||STREET).map(([name,x,z,rotation,stack],i)=><Prop key={name+i} name={name} position={[x,0,z]} rotation={rotation} stack={stack}/>)}
+  {(PROP_SETS[arena.id]||STREET).map(([name,x,z,rotation,stack],i)=><AssetBoundary key={name+i}><Suspense fallback={null}><Prop name={name} position={[x,0,z]} rotation={rotation} stack={stack}/></Suspense></AssetBoundary>)}
   {arena.id!=='london'&&[[-15,-15,Math.PI/4,'#2f8f6a','WATER · SNACKS'],[15,-15,-Math.PI/4,'#c9522f','TOP UP HERE']].map(([x,z,r,c,l])=><Kiosk key={l} position={[x,0,z]} rotation={r} color={c} label={l}/>)}
  </>
 }
