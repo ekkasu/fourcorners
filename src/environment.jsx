@@ -1,4 +1,4 @@
-import React,{Suspense,useMemo} from 'react';
+import React,{Suspense,useEffect,useMemo} from 'react';
 import{useLoader}from'@react-three/fiber';
 import{Environment as SkyLight,Text,useGLTF,useTexture}from'@react-three/drei';
 import*as THREE from'three';
@@ -37,6 +37,45 @@ function Building({position,rotation,width,height,tint,band,sign,wallTex,roofTex
  </group>
 }
 
+// Painted court art, drawn once into a canvas: each corner's zone in its colour, a Black Star centre circle, Adinkra
+// symbols in the empty corners, paint splashes, then scuffed and worn where players run. Concrete and asphalt courts get
+// full colour; dirt gets lime chalk; grass only white marking paint.
+const ZONE_COLORS=['#e6534c','#4b9bff','#36df89','#f8cf51'],ZONE_SPOTS=[[0,-1],[1,0],[0,1],[-1,0]];
+const MURALS={kumasi:{paint:'full',alpha:.78,splats:46},school:{paint:'full',alpha:.72,splats:70},london:{paint:'full',alpha:.82,splats:40},village:{paint:'chalk',alpha:.55,splats:0},accra:{paint:'chalk',alpha:.45,splats:0}};
+function seeded(seed){let h=seed;return()=>{h=Math.imul(h^(h>>>15),2246822507)>>>0;h=Math.imul(h^(h>>>13),3266489909)>>>0;return((h^=h>>>16)>>>0)/4294967296}}
+function paintMural(id,size){
+ const cfg=MURALS[id]||MURALS.kumasi,canvas=document.createElement('canvas');canvas.width=canvas.height=size;const ctx=canvas.getContext('2d'),m=size/24.5,X=x=>(x+12.25)*m,rnd=seeded(id.length*7919+size);
+ const chalk=cfg.paint==='chalk',col=c=>chalk?'#f4f1e8':c,ink=chalk?'#f4f1e8':'#14161a';
+ // Rough-edged blob: many overlapping circles.
+ const blob=(x,z,radius,color,alpha,n=26)=>{ctx.fillStyle=color;ctx.globalAlpha=alpha;for(let i=0;i<n;i++){const a=rnd()*Math.PI*2,d=Math.sqrt(rnd())*radius*.75;ctx.beginPath();ctx.arc(X(x+Math.cos(a)*d),X(z+Math.sin(a)*d),radius*(.35+rnd()*.35)*m,0,Math.PI*2);ctx.fill()}ctx.globalAlpha=1};
+ const ring=(x,z,radius,width,color)=>{ctx.strokeStyle=color;ctx.lineWidth=width*m;ctx.beginPath();ctx.arc(X(x),X(z),radius*m,0,Math.PI*2);ctx.stroke()};
+ // Corner zones: a painted half-disc in front of each goal, edged with a rim.
+ ZONE_SPOTS.forEach(([ox,oz],i)=>{const gx=ox*12.25,gz=oz*12.25,start=Math.atan2(-oz,-ox)-Math.PI/2;ctx.save();ctx.beginPath();ctx.arc(X(gx),X(gz),4.3*m,start,start+Math.PI);ctx.closePath();ctx.clip();
+  if(chalk){ctx.globalAlpha=.9;ctx.strokeStyle=col();ctx.lineWidth=.12*m;for(const rad of [4.15,3.55]){ctx.beginPath();ctx.arc(X(gx),X(gz),rad*m,start,start+Math.PI);ctx.stroke()}}
+  else{ctx.globalAlpha=.85;ctx.fillStyle=ZONE_COLORS[i];ctx.beginPath();ctx.arc(X(gx),X(gz),4.3*m,start,start+Math.PI);ctx.fill();ctx.globalAlpha=.9;ring(gx,gz,4.05,.14,'#f4f1e8');ring(gx,gz,2.6,.5,'#00000022')}
+  ctx.restore();ctx.globalAlpha=1});
+ // Centre: the Black Star on gold, ringed red and green (in chalk, just the outlines).
+ const star=(x,z,R,fill,stroke)=>{ctx.beginPath();for(let k=0;k<10;k++){const a=-Math.PI/2+k*Math.PI/5,rr=k%2?R*.42:R;ctx.lineTo(X(x+Math.cos(a)*rr),X(z+Math.sin(a)*rr))}ctx.closePath();if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=.12*m;ctx.stroke()}};
+ if(chalk){ring(0,0,2.4,.12,col());star(0,0,1.6,null,col())}
+ else{ctx.globalAlpha=.95;ctx.fillStyle='#fcd116';ctx.beginPath();ctx.arc(X(0),X(0),2.95*m,0,Math.PI*2);ctx.fill();ring(0,0,2.95,.3,'#ce1126');ring(0,0,2.55,.3,'#006b3f');star(0,0,1.75,'#14161a');ctx.globalAlpha=1}
+ // Adinkra symbols in the four empty corners of the court.
+ const sym=[(x,z)=>{for(const rad of [1.2,.85,.5])ring(x,z,rad,.16,ink)}, // Adinkrahene: greatness
+  (x,z)=>{ctx.strokeStyle=ink;ctx.lineWidth=.18*m;ctx.beginPath();for(let k=0;k<=6;k++)ctx.lineTo(X(x-1.1+k*.37),X(z+(k%2?-.55:.55)));ctx.stroke()}, // Nkyinkyim: resilience
+  (x,z)=>{ctx.strokeStyle=ink;ctx.lineWidth=.16*m;for(const h of [1.1,.6])ctx.strokeRect(X(x-h),X(z-h),2*h*m,2*h*m);ctx.beginPath();ctx.moveTo(X(x-1.1),X(z));ctx.lineTo(X(x+1.1),X(z));ctx.moveTo(X(x),X(z-1.1));ctx.lineTo(X(x),X(z+1.1));ctx.stroke()}, // Eban: safety
+  (x,z)=>{ctx.strokeStyle=ink;ctx.lineWidth=.16*m;ctx.beginPath();ctx.moveTo(X(x),X(z+1));ctx.bezierCurveTo(X(x-1.6),X(z-.1),X(x-.7),X(z-1.3),X(x),X(z-.45));ctx.bezierCurveTo(X(x+.7),X(z-1.3),X(x+1.6),X(z-.1),X(x),X(z+1));ctx.stroke();for(const sx of [-1,1]){ctx.beginPath();ctx.arc(X(x+sx*.42),X(z-.95),.22*m,0,Math.PI*1.5);ctx.stroke()}}]; // Sankofa: learn from the past
+ [[-8.2,-8.2],[8.2,-8.2],[8.2,8.2],[-8.2,8.2]].forEach(([x,z],i)=>{if(!chalk)blob(x,z,1.9,['#fcd116','#4b9bff','#ce1126','#36df89'][(i+1)%4],.5,18);ctx.globalAlpha=chalk?.8:.9;sym[i](x,z);ctx.globalAlpha=1});
+ // Splashes and drips.
+ const palette=['#ce1126','#fcd116','#006b3f','#4b9bff','#ff7a1a','#a46ce8','#f4f1e8'];
+ for(let i=0;i<cfg.splats;i++){const x=(rnd()-.5)*22,z=(rnd()-.5)*22;if(Math.hypot(x,z)<3.4)continue;const c=palette[Math.floor(rnd()*palette.length)];blob(x,z,.25+rnd()*.7,c,.7,8);for(let k=0;k<4;k++){const a=rnd()*Math.PI*2,d=.6+rnd()*1.1;blob(x+Math.cos(a)*d,z+Math.sin(a)*d,.06+rnd()*.12,c,.75,3)}}
+ // Wear: scuffed patches where play is heaviest (centre and in front of goals), then fine grain everywhere.
+ ctx.globalCompositeOperation='destination-out';
+ const scuff=(x,z,spread,n)=>{for(let i=0;i<n;i++){ctx.globalAlpha=.08+rnd()*.25;ctx.beginPath();ctx.ellipse(X(x+(rnd()-.5)*spread),X(z+(rnd()-.5)*spread),(.1+rnd()*.5)*m,(.05+rnd()*.2)*m,rnd()*Math.PI,0,Math.PI*2);ctx.fill()}};
+ scuff(0,0,7,260);ZONE_SPOTS.forEach(([ox,oz])=>scuff(ox*9.5,oz*9.5,5,180));scuff(0,0,24,420);
+ ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;
+ const img=ctx.getImageData(0,0,size,size),d=img.data,grain=seeded(size*31);for(let i=3;i<d.length;i+=4)if(d[i])d[i]=d[i]*(cfg.alpha*(.72+grain()*.28));ctx.putImageData(img,0,0);
+ const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=8;return texture}
+function CourtMural({id}){const texture=useMemo(()=>paintMural(id,typeof window!=='undefined'&&window.matchMedia('(pointer: coarse)').matches?1024:2048),[id]);useEffect(()=>()=>texture.dispose(),[texture]);
+ return <mesh rotation={[-Math.PI/2,0,0]} position={[0,.009,0]} receiveShadow renderOrder={1}><planeGeometry args={[24.5,24.5]}/><meshStandardMaterial map={texture} transparent depthWrite={false} roughness={.9} polygonOffset polygonOffsetFactor={-1}/></mesh>}
 function Kiosk({position,rotation,color,label}){return <group position={position} rotation={[0,rotation,0]}>
  <mesh position={[0,1.15,0]} castShadow receiveShadow><boxGeometry args={[2.4,2.3,2]}/><meshStandardMaterial color={color} roughness={.8}/></mesh>
  <mesh position={[0,1.25,1.01]}><planeGeometry args={[1.8,.9]}/><meshStandardMaterial color="#2a211b"/></mesh>
@@ -125,10 +164,11 @@ export function ArenaEnvironment({arena}){
   for(let i=0;i<9;i++){const z=-26+i*6.5;list.push(make(-22-(i%2)*2,z,Math.PI/2,4+(i%3),low?2.6:3.2+(i%3)*.65),make(22+(i%2)*2,z,-Math.PI/2,4+(i%3),low?2.6:3+(i%3)*.75))}
   [-25,-18,-11,11,18,25].forEach((x,i)=>list.push(make(x,-27,0,5,low?2.6:3.4+(i%2)*.8)));[-25,-16,16,25].forEach(x=>list.push(make(x,27,Math.PI,6,low?2.6:3)));return list},[arena.id,arena.type]);
  return <>
-  <SkyLight files={TEX+'sky_1k.hdr'} background environmentIntensity={.9}/>
+  <SkyLight files={TEX+'sky_1k.hdr'} background environmentIntensity={1.1}/>
   <mesh rotation={[-Math.PI/2,0,0]} position={[0,-.02,0]} receiveShadow><planeGeometry args={[200,200]}/><meshStandardMaterial {...ground} color={theme.ground} roughness={1}/></mesh>
   <mesh rotation={[-Math.PI/2,0,0]} receiveShadow><planeGeometry args={[24.5,24.5]}/><meshStandardMaterial {...court} color={theme.court} roughness={.95} normalScale={[.8,.8]}/></mesh>
   {theme.grass&&MOW_STRIPES.map((x,i)=><mesh key={i} rotation={[-Math.PI/2,0,0]} position={[x,.006,0]} receiveShadow><planeGeometry args={[24.5/8,24.5]}/><meshStandardMaterial color="#0b2a0b" transparent opacity={.2} depthWrite={false}/></mesh>)}
+  <CourtMural id={arena.id}/>
   <CourtBorder type={theme.border} wallTex={wall}/>
   {buildings.map(({key,...b})=><Building key={key} {...b} wallTex={wall} roofTex={theme.roof?roof:null}/>)}
   {theme.palms?[[-17,-16,0],[17,-15,2],[-17.5,9,4],[17,11,1],[-15,22,3],[15.5,23,5]].map(([x,z,t],i)=><Palm key={i} position={[x,0,z]} height={5+(i%3)*.6} turn={t}/>)

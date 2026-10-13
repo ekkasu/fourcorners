@@ -11,6 +11,7 @@ export function levelInfo(xp){let level=1,into=Math.max(0,Math.floor(xp));while(
 // Level needed for Locker items. Anything not listed is free from the start.
 const UNLOCK_LEVELS={
  boots:{'#f4f4f4':2,'#ffcf1f':2,'#39ff6a':7,'#ff4fa3':7,'#2f7bff':7,'#ff6a1f':7},
+ pattern:{hoops:3,sash:6,halves:11},
  celebration:{cel_fistpump:3,cel_rally:6,cel_backflip:9,cel_dance:12},
  jersey:{'#16181d':5,'#f4f4f4':10,'#ff7a1a':14}};
 export function requiredLevel(kind,id){if(id==='default')return 1;if(kind==='shorts')return 4;if(kind==='socks')return 8;return UNLOCK_LEVELS[kind]?.[id]||1}

@@ -31,6 +31,8 @@ export const sfx={
  bounce(strength=.5){thump(110,60,.35*Math.min(1,strength),.1)},
  tackle(){thump(90,50,.5,.12);hiss('bandpass',900,.25,.005,.12,.8)},
  save(){thump(80,40,.6,.2);hiss('lowpass',900,.2,.004,.1)},
+ // Referee's whistle for a foul: two short blasts and a long one.
+ foul(){whistle(0,.16);whistle(.26,.16);whistle(.52,.5)},
  skill(){hiss('bandpass',1300,.22,.03,.2,1.4);thump(220,140,.14,.06)},
  post(strength=.6){thump(420,210,.55*strength,.09);hiss('bandpass',2600,.28*strength,.002,.07,3)},
  goal(){hiss('bandpass',650,.55,.4,1.8,.5);hiss('bandpass',1600,.18,.3,1.5,.7);whistle(0,.18);whistle(.25,.5)},
