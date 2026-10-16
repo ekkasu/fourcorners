@@ -144,3 +144,15 @@ while watching and jump with arms up when their player scores.
 The match music (an Afrobeat/highlife groove), the crowd murmur and all sound
 effects are synthesized in `src/sound.js` with the Web Audio API. There are no
 audio files.
+
+## Athletic proportions and broadcast framing
+
+The red and blue CC0 rigs now receive runtime proportion adjustments in
+`src/player-proportions.js`: smaller heads, hands and boots, with a taller,
+slimmer overall silhouette. The adjustment is restored before each animation
+update, then applied afterward, so walk/run scale tracks and clip transitions
+remain stable. Crowd poses bake the same proportions once before instancing.
+No additional character meshes, textures or animation downloads are needed.
+
+The shared offline/online broadcast camera uses a lower, closer angle, follows
+the midpoint of the controlled player and ball, and widens to keep both visible.

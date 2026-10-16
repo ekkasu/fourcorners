@@ -1,3 +1,4 @@
+import {athleticRig,ATHLETIC_SCALE} from './player-proportions.js';
 import {useMatchIntro} from './useMatchIntro.js';
 import {stepPlayerTackle} from './tackling.js';
 import FullscreenButton from './FullscreenButton.jsx';
@@ -150,7 +151,7 @@ function addBackPrint(model,female,back,kit){if(!back||(!back.name&&!back.number
  const material=new THREE.MeshStandardMaterial({map:backPrintTexture(back.name,back.number,dark),transparent:true,alphaTest:.25,depthWrite:false,roughness:.8,polygonOffset:true,polygonOffsetFactor:-2});
  const strip=new THREE.Mesh(geometry,material);strip.name='BackPrint';strip.position.set(spec.center[0],spec.center[1],spec.center[2]+R);model.updateMatrixWorld(true);bone.attach(strip)}
 const litMaterials=new WeakMap();
-function litFootballer(material){if(!litMaterials.has(material)){const m=material.clone();m.emissiveIntensity=.22;m.roughness=.75;if('specularIntensity' in m)m.specularIntensity=.35;litMaterials.set(material,m)}return litMaterials.get(material)}
+function litFootballer(material){if(!litMaterials.has(material)){const m=material.clone();m.emissiveIntensity=.08;m.metalness=0;m.roughness=.85;if('specularIntensity' in m)m.specularIntensity=.35;litMaterials.set(material,m)}return litMaterials.get(material)}
 // The red and blue footballers have different bone rest rotations, so each uses clips retargeted to its own skeleton.
 const MOVES_URL={'/models/footballer-red.glb':'/models/footballer-moves-red.json','/models/footballer-blue.glb':'/models/footballer-moves.json',[FEMALE_MODEL]:'/models/footballer-moves-female.json'};
 const movesUrlFor=model=>MOVES_URL[model]||'/models/footballer-moves.json';const parsedMoves=new Map();
@@ -166,11 +167,13 @@ function RiggedPlayer({position=[0,0,0],animated=false,animationFps=60,label='YO
   if(female){object.material=dressFemale(object,kit,outfit,tone);object.receiveShadow=true;return}
   if((kit||tone)&&object.material.map){const source=object.material.map;object.material=object.material.clone();object.material.map=kitTexture(source,regions?GHANA:kit,tone);if(object.material.emissiveMap===source)object.material.emissiveMap=object.material.map}if(footballer){object.material=litFootballer(object.material);if(regions)object.material=kitRegions(object.material,kit,outfit,hasBack);else if(kit===GHANA)object.material=ghanaKit(object.material);object.receiveShadow=true}});
   if(footballer)addBackPrint(copy,female,back,kit);return copy},[scene,kit,footballer,female,skin,outfitKey,backKey]);
+ const proportions=useMemo(()=>footballer&&!female?athleticRig(model):null,[model,footballer,female]);
  const clips=useMemo(()=>{const all=footballer?[...animations,...moves.clips]:animations,find=n=>all.find(c=>c.name.toLowerCase()===n);const walk=find('walk'),run=find('run'),nativeIdle=find('idle');const still=nativeIdle?null:walk.tracks.map(track=>{const value=Array.from(track.createInterpolant().evaluate(0));return new track.constructor(track.name,[0,1],[...value,...value])});
   return {idle:nativeIdle||new THREE.AnimationClip('idle',1,still),walk,jog:run,run,dribble:find('dribble'),strike:find('strike'),penalty:find('penalty'),tackle:find('tackle'),celebrate:find(celebration)||find('celebrate')}},[animations,footballer,moves,celebration]);
  useEffect(()=>{mixer.current=new THREE.AnimationMixer(model);current.current=currentClip.current='';return()=>{mixer.current?.stopAllAction();mixer.current?.uncacheRoot(model);mixer.current=null}},[model]);
  const animationTime=useRef(0);
  useFrame((_,dt)=>{if(!mixer.current||!root.current||root.current.parent?.visible===false)return;animationTime.current+=Math.min(dt,.1);if(animationTime.current<1/animationFps)return;dt=animationTime.current;animationTime.current=0;const data=root.current.parent?.userData||{},clock=data.clock,speed=animated?Math.hypot(data.velocityX||0,data.velocityZ||0):0;
+  proportions?.restore();
   let next,key,once=null;
   if(footballer&&clock!==undefined&&clock<(data.celebrateUntil??-1)){next='celebrate';key=next+celebration+data.celebrateUntil}
   else if(footballer&&clock!==undefined&&clips[data.kickType]&&(once=oneShotWindow(data.kickType,moves.events))&&clock-data.kickAt<once.length){next=data.kickType;key=next+data.kickAt}
@@ -178,8 +181,8 @@ function RiggedPlayer({position=[0,0,0],animated=false,animationFps=60,label='YO
   if(key!==current.current){const previous=currentClip.current&&mixer.current.existingAction(clips[currentClip.current]),action=mixer.current.clipAction(clips[next]),fade=once?.08:.18;
    action.reset();action.setLoop(once?THREE.LoopOnce:THREE.LoopRepeat,Infinity);action.clampWhenFinished=!!once;action.time=once?once.start+Math.max(0,clock-data.kickAt):0;action.fadeIn(fade).play();if(previous&&previous!==action)previous.fadeOut(fade);current.current=key;currentClip.current=next}
   mixer.current.existingAction(clips[next])?.setEffectiveTimeScale(next==='walk'?(footballer?Math.max(.7,speed/5):Math.max(.65,speed/3)):next==='jog'?Math.max(.75,speed/5):next==='run'?Math.max(.8,speed/7):next==='dribble'?THREE.MathUtils.clamp(speed/2.8,.8,2):1);
-  mixer.current.update(Math.min(dt,.1)*(data.timeScale??1))});
- return <group ref={root} position={position}><primitive object={model} scale={footballer&&!female?1:female?1.01:1.2}/>{label&&<Billboard position={[0,2.55,0]}><Text fontSize={.27} color="white" anchorX="center" outlineWidth={.022} outlineColor="#141414">{label}</Text></Billboard>}</group>
+  mixer.current.update(Math.min(dt,.1)*(data.timeScale??1));proportions?.apply()});
+ return <group ref={root} position={position}><primitive object={model} scale={footballer&&!female?ATHLETIC_SCALE:female?1.01:1.2}/>{label&&<Billboard position={[0,2.15,0]}><Text fontSize={.22} color="white" anchorX="center" outlineWidth={.022} outlineColor="#141414">{label}</Text></Billboard>}</group>
 }
 
 // Fans in their corner's colours around the court. Each pose is baked once into a static mesh (CPU skinning) and drawn with
@@ -187,10 +190,10 @@ function RiggedPlayer({position=[0,0,0],animated=false,animationFps=60,label='YO
 const FAN_IDLE_PHASE=.533,FAN_SKINS={0:'#5e3a22',1:'#45291a',2:'#6b4126',3:'#8a5634'};
 function bakePose(scene,clip,time){
  const copy=cloneSkeleton(scene);let mesh;copy.traverse(o=>{if(o.isSkinnedMesh)mesh=o});
- const mixer=new THREE.AnimationMixer(copy);mixer.clipAction(clip).play();mixer.setTime(time);copy.updateMatrixWorld(true);
+ const mixer=new THREE.AnimationMixer(copy);mixer.clipAction(clip).play();mixer.setTime(time);athleticRig(copy).apply();copy.updateMatrixWorld(true);
  const src=mesh.geometry,pos=src.attributes.position,out=new Float32Array(pos.count*3),v=new THREE.Vector3();
  for(let i=0;i<pos.count;i++){v.fromBufferAttribute(pos,i);mesh.applyBoneTransform(i,v).applyMatrix4(mesh.matrixWorld);out[i*3]=v.x;out[i*3+1]=v.y;out[i*3+2]=v.z}
- const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(out,3));g.setAttribute('uv',src.attributes.uv);g.setIndex(src.index);g.computeVertexNormals();mixer.uncacheRoot(copy);return g;
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(out,3));g.setAttribute('uv',src.attributes.uv);g.setIndex(src.index);g.scale(...ATHLETIC_SCALE);g.computeVertexNormals();mixer.uncacheRoot(copy);return g;
 }
 // The moment in a clip where both hands are highest: used as the cheering pose.
 function handsUpTime(scene,clip){
@@ -407,7 +410,7 @@ function CelebrationPreview({target,previewKey}){const start=useRef(false);useEf
 function PlayerShowcase({jersey,gender,skin,interactive=false,outfit,back,celebration,previewKey=0}){
  const kit=playerKit(gender,jersey,outfit,back),pose=useRef(),graphics=useGraphics(),visible=usePageVisible();
  return <SceneBoundary><Canvas frameloop={visible?'always':'never'} className="hero-player-canvas" shadows={graphics.shadows} camera={{position:[0,1.05,3.4],fov:34}} dpr={Math.min(devicePixelRatio||1,graphics.dpr)} gl={{alpha:true,antialias:false}} onCreated={({camera})=>camera.lookAt(0,.92,0)}>
-  <ambientLight intensity={1.1}/><directionalLight position={[2,4,3]} intensity={2}/>
+  <ambientLight intensity={.8}/><hemisphereLight args={['#e5f2ff','#a6a2a0',.9]}/><directionalLight position={[2,4,3]} intensity={2}/><directionalLight position={[-3,2,-3]} intensity={1.2}/>
   <Suspense fallback={null}><group ref={pose} rotation={[0,interactive?0:-.35,0]}><RiggedPlayer label="" gender={gender} skin={skin} {...kit} back={back} celebration={celebration}/></group></Suspense>{interactive&&<CelebrationPreview target={pose} previewKey={previewKey}/>}
   {interactive&&<>{graphics.shadows&&<ContactShadows frames={1} resolution={256} position={[0,0,0]} opacity={.55} scale={3.2} blur={2.4} far={1.6}/>}<OrbitControls target={[0,.92,0]} enablePan={false} enableZoom={false} minPolarAngle={Math.PI/2.15} maxPolarAngle={Math.PI/2.15} autoRotate autoRotateSpeed={.9}/></>}
  </Canvas></SceneBoundary>
