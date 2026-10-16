@@ -1,0 +1,8 @@
+/* A quiet night-court palette shared by the launch, menus, and match UI. */
+:root {
+  --background: #0b1520;
+  --surface: #101c29;
+  --accent: #85c9bf;
+  --text: #e4edf2;
+  --muted: #a8bac7;
+}
