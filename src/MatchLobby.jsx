@@ -15,7 +15,7 @@ export default function MatchLobby({mode,setMode,arena,name,level,lives,setLives
     {local?<>
      <Choice label="GOALS TO ELIMINATE" value={lives} onChange={setLives} options={[1,2,3,5].map(n=>[n,n])}/>
      <Choice label="RIVAL DIFFICULTY" value={difficulty} onChange={setDifficulty} options={['easy','normal','hard'].map(id=>[id,id])}/>
-     <div className="ml-setting"><span>STREET RULES</span><button className="ml-toggle" aria-pressed={oneTouch} onClick={()=>setOneTouch(!oneTouch)}><span>One-touch football</span><b>{oneTouch?'ON':'OFF'}</b></button><p>{oneTouch?'Strike with your first touch. A second touch gives away a penalty.':'Keep possession and dribble freely.'}</p></div>
+     <div className="ml-setting"><span>STREET RULES</span><button className="ml-toggle" aria-pressed={oneTouch} onClick={()=>setOneTouch(!oneTouch)}><span>One-touch football</span><b>{oneTouch?'ON':'OFF'}</b></button><p>{oneTouch?'After you play the ball, wait for another player to touch it before playing again.':'Keep possession and dribble freely.'}</p></div>
      <Choice label="CAMERA VIEW" value={camMode} onChange={setCamMode} options={[['close','Close'],['broadcast','Sideline'],['overhead','Overhead']]}/>
     </>:<p className="ml-info">{mode==='Private Room'?'Invite friends using a six-character room code. The next screen lets you create or join a room.':'Duo Battle is still in development. Choose Free-for-All or Training to get on the court.'}</p>}
     <div className="ml-ready"><i/>{mode==='Duo Battle'?'IN DEVELOPMENT':locked&&local?'SELECT AN UNLOCKED COURT':local?'READY TO HIT THE COURT':'GET YOUR FRIENDS TOGETHER'}</div>

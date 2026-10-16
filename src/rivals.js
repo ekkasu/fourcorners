@@ -1,3 +1,4 @@
+import {canTouchBall} from './one-touch.js';
 import * as THREE from 'three';
 import {GOAL_WIDTH,PLAYER_LIMIT,confineBall} from './court-layout.js';
 const RIVAL_GOALS=[0,3,1],GOALS=[[0,-11],[11,0],[0,11],[-11,0]];
@@ -20,9 +21,9 @@ export function createRivalStepper({sfx,burst,touchBall,KICK_LEAD,KICKER_GRACE,O
    s.rc=-1;s.ignore={who:i,until:s.now+KICKER_GRACE};s.bvx=ux/u*power;s.bvz=uz/u*power;s.bvy=.4+Math.random()*1.4;s.curve=0;s.last=i;s.lock=.4;rv.cool=1;rv.kickAt=s.now-KICK_LEAD;rv.kickType='penalty';sfx.kick(.8);burst(s.bx,s.bz,7,'kick',ux/u,uz/u);p.shot=true;p.endAt=s.now+3}
   return}
  s.stealCool-=d;
- if(s.rc>=0&&s.stealCool<=0&&Math.hypot(s.bx-s.x,s.bz-s.z)<.85){s.rivals[s.rc].cool=1.2;s.rc=-1;s.attached=true;s.bAng=Math.atan2(s.bx-s.x,s.bz-s.z);s.last='player';s.stealCool=.8;sfx.tackle();if(!touchBall(s,'player'))s.touchUntil=s.now+ONE_TOUCH_WINDOW}
+ if(canTouchBall(s,'player')&&s.rc>=0&&s.stealCool<=0&&Math.hypot(s.bx-s.x,s.bz-s.z)<.85){s.rivals[s.rc].cool=1.2;s.rc=-1;s.attached=true;s.bAng=Math.atan2(s.bx-s.x,s.bz-s.z);s.last='player';s.stealCool=.8;sfx.tackle();if(!touchBall(s,'player'))s.touchUntil=s.now+ONE_TOUCH_WINDOW}
  const ballSpeed=Math.hypot(s.bvx,s.bvz),loose=!s.attached&&s.rc<0;let chaser=-1,best=Infinity;
- s.rivals.forEach((r,i)=>{if(!s.alive[RIVAL_GOALS[i]]||s.rc===i||(s.oneTouch&&s.toucher===i))return;const dist=Math.hypot(s.bx-r.x,s.bz-r.z);if(dist<best){best=dist;chaser=i}});
+ s.rivals.forEach((r,i)=>{if(!s.alive[RIVAL_GOALS[i]]||s.rc===i||!canTouchBall(s,i))return;const dist=Math.hypot(s.bx-r.x,s.bz-r.z);if(dist<best){best=dist;chaser=i}});
  s.rivals.forEach((r,i)=>{
   const g=RIVAL_GOALS[i],[gx,gz]=GOALS[g],alive=s.alive[g],L=levels[i];r.cool-=d;let tx=r.x,tz=r.z,speed=0;
   // Fooled by a step-over: the rival keeps lunging the wrong way and stumbles to a stop.
@@ -37,14 +38,14 @@ export function createRivalStepper({sfx,burst,touchBall,KICK_LEAD,KICKER_GRACE,O
   const dx=tx-r.x,dz=tz-r.z,dist=Math.hypot(dx,dz),want=dist>.25?Math.min(speed,dist*3):0;
   r.vx=THREE.MathUtils.damp(r.vx,dist?dx/dist*want:0,6,d);r.vz=THREE.MathUtils.damp(r.vz,dist?dz/dist*want:0,6,d);
   r.x=THREE.MathUtils.clamp(r.x+r.vx*d,-PLAYER_LIMIT,PLAYER_LIMIT);r.z=THREE.MathUtils.clamp(r.z+r.vz*d,-PLAYER_LIMIT,PLAYER_LIMIT);
-  if(alive&&loose&&s.rc<0&&!s.attached&&i===chaser&&r.cool<=0&&s.by<.5&&ballSpeed<=7&&!(s.oneTouch&&s.toucher===i)&&Math.hypot(s.bx-r.x,s.bz-r.z)<.9){s.attached=false;s.rc=i;r.target=pickTarget(s,i);s.last=i;s.lock=.6;s.stealCool=.9;r.cool=.5;r.touchUntil=s.now+.25+Math.random()*.35;touchBall(s,i);return}
+  if(alive&&loose&&s.rc<0&&!s.attached&&i===chaser&&r.cool<=0&&s.by<.5&&ballSpeed<=7&&canTouchBall(s,i)&&Math.hypot(s.bx-r.x,s.bz-r.z)<.9){s.attached=false;s.rc=i;r.target=pickTarget(s,i);s.last=i;s.lock=.6;s.stealCool=.9;r.cool=.5;r.touchUntil=s.now+.25+Math.random()*.35;touchBall(s,i);return}
   for(const o of [s,...s.rivals]){if(o===r||(o!==s&&!s.alive[RIVAL_GOALS[s.rivals.indexOf(o)]]))continue;const ox=r.x-o.x,oz=r.z-o.z,od=Math.hypot(ox,oz);if(od>0&&od<.9){r.x+=ox/od*(.9-od);r.z+=oz/od*(.9-od)}}
   r.x=THREE.MathUtils.clamp(r.x,-PLAYER_LIMIT,PLAYER_LIMIT);r.z=THREE.MathUtils.clamp(r.z,-PLAYER_LIMIT,PLAYER_LIMIT);
   if(s.rc===i){const[ax,az]=GOALS[r.target],heading=Math.hypot(r.vx,r.vz)>.3?Math.atan2(r.vx,r.vz):Math.atan2(ax-r.x,az-r.z);s.bx=r.x+Math.sin(heading)*.65;s.bz=r.z+Math.cos(heading)*.65;s.by=s.bvx=s.bvz=s.bvy=0;{const bounded=confineBall(s.bx,s.bz);s.bx=bounded.x;s.bz=bounded.z}
    if((r.cool<=0&&Math.hypot(ax-s.bx,az-s.bz)<L.shootRange)||(s.oneTouch&&s.now>=(r.touchUntil||0))){const miss=(Math.random()-.5)*L.aim,aimX=ax+(az?miss:0),aimZ=az+(ax?miss:0),ux=aimX-s.bx,uz=aimZ-s.bz,u=Math.hypot(ux,uz),power=12+Math.random()*4;
     s.rc=-1;s.ignore={who:i,until:s.now+KICKER_GRACE};s.bvx=ux/u*power;s.bvz=uz/u*power;s.bvy=.8+Math.random()*1.6;s.curve=(Math.random()-.5)*.8;s.last=i;s.lock=.25;r.cool=1.2;r.kickAt=s.now-KICK_LEAD;r.kickType='strike';sfx.kick(.7);burst(s.bx,s.bz,7,'kick',ux/u,uz/u)}
    return}
-  if(!alive||r.cool>0||s.by>1.9||Math.hypot(s.bx-r.x,s.bz-r.z)>.75||(s.oneTouch&&s.toucher===i))return;
+  if(!alive||r.cool>0||s.by>1.9||Math.hypot(s.bx-r.x,s.bz-r.z)>.75||!canTouchBall(s,i))return;
   // Hard shot not saved: it has already deflected off this rival's body in the ball physics.
   if(loose&&ballSpeed>7&&Math.random()>L.save){r.cool=.5;return}
   const take=loose?ballSpeed<=7&&s.by<.5:Math.random()<L.tackleWin;
