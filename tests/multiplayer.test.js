@@ -44,3 +44,41 @@ test('default sideline camera follows play and widens for portrait screens',asyn
  assert.ok(portrait.position[1]>standard.position[1]);assert.ok(portrait.fov>standard.fov);
  assert.equal(edge.position[0],6);assert.equal(edge.lookAt[0],6);
 });
+
+test('a stopped ball is recoverable and stays dribbleable in every corner',async()=>{
+ const {BALL_LIMIT,PLAYER_LIMIT}=await import('../src/court-layout.js');
+ for(const sx of [-1,1])for(const sz of [-1,1]){
+  const m=match();Object.assign(m.players[0],{x:sx*10.5,z:sz*10.5});Object.assign(m.ball,{x:sx*BALL_LIMIT,z:sz*BALL_LIMIT,vx:0,vz:0});
+  for(let i=0;i<90;i++){acceptInput(m,'a',{x:sx,z:sz});stepMatch(m)}
+  assert.equal(m.ball.owner,'a',`corner ${sx},${sz} should remain reachable`);
+  assert.ok(Math.abs(m.players[0].x)<=PLAYER_LIMIT);assert.ok(Math.abs(m.players[0].z)<=PLAYER_LIMIT);
+  assert.ok(Math.abs(m.ball.x)<=BALL_LIMIT);assert.ok(Math.abs(m.ball.z)<=BALL_LIMIT);
+ }
+});
+test('stationary balls along every non-goal wall can be picked up',async()=>{
+ const {BALL_LIMIT}=await import('../src/court-layout.js');
+ for(const [x,z]of [[BALL_LIMIT,5],[-BALL_LIMIT,5],[5,BALL_LIMIT],[5,-BALL_LIMIT]]){
+  const m=match(),p=m.players[0];p.x=Math.max(-10.5,Math.min(10.5,x));p.z=Math.max(-10.5,Math.min(10.5,z));Object.assign(m.ball,{x,z,vx:0,vz:0});
+  for(let i=0;i<90;i++){acceptInput(m,'a',{x:Math.sign(x-p.x),z:Math.sign(z-p.z)});stepMatch(m)}
+  assert.equal(m.ball.owner,'a',`wall ${x},${z}`);
+ }
+});
+test('offline AI pickup range reaches the entire wall strip including corners',async()=>{
+ const {BALL_LIMIT,PLAYER_LIMIT}=await import('../src/court-layout.js');
+ assert.ok(Math.hypot(BALL_LIMIT-PLAYER_LIMIT,BALL_LIMIT-PLAYER_LIMIT)<.75);
+});
+test('wall rebounds keep an inward-moving ball moving into play',async()=>{
+ const {confineBall,BALL_LIMIT,broadcastView}=await import('../src/court-layout.js');
+ assert.equal(confineBall(BALL_LIMIT+.1,0,2,0).vx,-1.2);
+ assert.equal(confineBall(BALL_LIMIT+.1,0,-2,0).vx,-2);
+ assert.ok(broadcastView(0,BALL_LIMIT).lookAt[2]>4);
+});
+
+test('sideline view keeps both ball and player visible at opposite court edges',async()=>{
+ const {broadcastView,BALL_LIMIT,PLAYER_LIMIT}=await import('../src/court-layout.js');
+ const {PerspectiveCamera,Vector3}=await import('three');
+ for(const aspect of [16/9,9/16,4/3])for(const bx of [-BALL_LIMIT,BALL_LIMIT])for(const bz of [-BALL_LIMIT,BALL_LIMIT])for(const px of [-PLAYER_LIMIT,PLAYER_LIMIT])for(const pz of [-PLAYER_LIMIT,PLAYER_LIMIT]){
+  const view=broadcastView(bx,bz,aspect,px,pz),camera=new PerspectiveCamera(view.fov,aspect,.1,200);camera.position.set(...view.position);camera.lookAt(...view.lookAt);camera.updateMatrixWorld();
+  for(const [x,z]of [[bx,bz],[px,pz]])for(const y of [0,2.4]){const p=new Vector3(x,y,z).project(camera);assert.ok(Math.abs(p.x)<=.83&&Math.abs(p.y)<=.83,`visible at aspect ${aspect}: ${p.x},${p.y}`)}
+ }
+});
