@@ -159,12 +159,12 @@ const MOW_STRIPES=[0,2,4,6].map(i=>-24.5/2+(i+.5)*24.5/8);
 
 function StreetEnvironment({arena,detailed=true}){
  const theme=THEMES[arena.id]||THEMES.accra;
- const court=useSurface(theme.courtFloor||theme.floor,6,true,theme.grass?GRASS_GRAIN:false),ground=useSurface(theme.floor,40),wall=useSurface(theme.wall,2.2,true,!!theme.paint),roof=useSurface('rusty_corrugated_iron',2,true);
+ const court=useSurface(theme.courtFloor||theme.floor,6,detailed,theme.grass?GRASS_GRAIN:false),ground=useSurface(theme.floor,40),wall=useSurface(theme.wall,2.2,detailed,!!theme.paint),roof=useSurface('rusty_corrugated_iron',2,detailed);
  const buildings=useMemo(()=>{let n=0;const make=(x,z,rotation,width,height,i)=>({key:n,position:[x,0,z],rotation,width,height,tint:theme.tints[n%theme.tints.length],band:theme.bands[n%theme.bands.length],sign:n++%2===0?theme.signs[(n>>1)%theme.signs.length]:null});const low=theme.roof&&arena.type==='Rural';const list=[];
   for(let i=0;i<9;i++){const z=-26+i*6.5;list.push(make(-22-(i%2)*2,z,Math.PI/2,4+(i%3),low?2.6:3.2+(i%3)*.65),make(22+(i%2)*2,z,-Math.PI/2,4+(i%3),low?2.6:3+(i%3)*.75))}
   [-25,-18,-11,11,18,25].forEach((x,i)=>list.push(make(x,-27,0,5,low?2.6:3.4+(i%2)*.8)));[-25,-16,16,25].forEach(x=>list.push(make(x,27,Math.PI,6,low?2.6:3)));return list},[arena.id,arena.type]);
  return <>
-  <SkyLight files={TEX+'sky_1k.hdr'} background environmentIntensity={1.1}/>
+  {detailed&&<SkyLight files={TEX+'sky_1k.hdr'} background environmentIntensity={1.1}/>}
   <mesh rotation={[-Math.PI/2,0,0]} position={[0,-.02,0]} receiveShadow><planeGeometry args={[200,200]}/><meshStandardMaterial {...ground} color={theme.ground} roughness={1}/></mesh>
   <mesh rotation={[-Math.PI/2,0,0]} receiveShadow><planeGeometry args={[24.5,24.5]}/><meshStandardMaterial {...court} color={theme.court} roughness={.95} normalScale={[.8,.8]}/></mesh>
   {theme.grass&&MOW_STRIPES.map((x,i)=><mesh key={i} rotation={[-Math.PI/2,0,0]} position={[x,.006,0]} receiveShadow><planeGeometry args={[24.5/8,24.5]}/><meshStandardMaterial color="#0b2a0b" transparent opacity={.2} depthWrite={false}/></mesh>)}
@@ -214,12 +214,12 @@ function SiteRubble({detailed}){
  if(!detailed)return null;return <><instancedMesh ref={stones} args={[null,null,80]}><dodecahedronGeometry args={[1,0]}/><meshStandardMaterial color="#8e8e80" roughness={1}/></instancedMesh><instancedMesh ref={grass} args={[null,null,40]}><coneGeometry args={[.45,1,4]}/><meshStandardMaterial color="#78844c" roughness={1}/></instancedMesh></>
 }
 function UncompletedBuilding({detailed}){
- const slab=useSurface('clay_plaster',11,true,true),earth=useSurface('red_laterite_soil_stones',35),concrete=useSurface('clay_plaster',2.5,true,true),roof=useSurface('rusty_corrugated_iron',2,true);
+ const slab=useSurface('clay_plaster',11,detailed,true),earth=useSurface('red_laterite_soil_stones',35),concrete=useSurface('clay_plaster',2.5,detailed,true),roof=useSurface('rusty_corrugated_iron',2,detailed);
  const masonry=useMemo(sandcreteTexture,[]);useEffect(()=>()=>masonry.dispose(),[masonry]);
  const columns=useMemo(()=>[-18,18].flatMap(x=>[-18,-10,-2,6,14,18].map(z=>[x,z])).concat([-16,-8,0,8,16].map(x=>[x,-18])),[]);
  const blocks=useMemo(()=>{const result=[];for(const[cx,cz]of[[-15,-15],[15,16]])for(let row=0;row<3;row++)for(let k=0;k<5-row;k++)result.push([cx+(k-2)*.8+(row%2)*.4,.2+row*.4,cz]);return result},[]);
  return <>
-  <SkyLight files={TEX+'sky_1k.hdr'} background environmentIntensity={.9}/>
+  {detailed&&<SkyLight files={TEX+'sky_1k.hdr'} background environmentIntensity={.9}/>}
   <mesh rotation={[-Math.PI/2,0,0]} position={[0,-.3,0]} receiveShadow><planeGeometry args={[200,200]}/><meshStandardMaterial {...earth} color="#ad9879" roughness={1}/></mesh>
   <mesh position={[0,-.15,0]} receiveShadow><boxGeometry args={[38,.3,42]}/><meshStandardMaterial {...slab} color="#8d8f82" roughness={1}/></mesh>
   <mesh rotation={[-Math.PI/2,0,0]} position={[0,.008,0]} receiveShadow><planeGeometry args={[24.5,24.5]}/><meshStandardMaterial {...slab} color="#6b6e64" roughness={1}/></mesh>

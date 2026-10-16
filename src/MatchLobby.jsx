@@ -1,3 +1,4 @@
+import FullscreenButton from './FullscreenButton.jsx';
 import React from 'react';
 import './match-lobby.css';
 const MODES=[['Free-for-All','01','LAST CORNER STANDING','Three AI rivals. Three minutes. Defend your goal and eliminate the rest.'],['Training','02','FIND YOUR TOUCH','No clock. No pressure. Practise against three AI rivals.'],['Private Room','03','BRING YOUR CREW','Create a room, share the code and play a live match with friends.'],['Duo Battle','04','BETTER TOGETHER','Two against two. Team battles are coming soon.']];
@@ -6,7 +7,7 @@ export default function MatchLobby({mode,setMode,arena,name,level,lives,setLives
  const current=MODES.find(m=>m[0]===mode)||MODES[0],local=mode==='Free-for-All'||mode==='Training';
  return <section className="match-lobby" aria-label="Match lobby">
   <div className="ml-backdrop" aria-hidden="true"/>
-  <header className="ml-top"><button onClick={onBack} aria-label="Go back to previous screen">‹ <span>BACK</span></button><span className="ml-brand">FOUR<span>CORNERS</span></span><span className="ml-player">{name} <b>LV {level}</b></span></header>
+  <header className="ml-top"><button onClick={onBack} aria-label="Go back to previous screen">‹ <span>BACK</span></button><span className="ml-brand">FOUR<span>CORNERS</span></span><div className="ml-top-actions"><FullscreenButton/><span className="ml-player">{name} <b>LV {level}</b></span></div></header>
   <div className="ml-layout">
    <aside className="ml-mode-list"><p className="ml-kicker">PLAY YOUR WAY</p><h1>MATCH<br/>SETUP</h1><nav aria-label="Game mode">{MODES.map(([title,num,tag])=><button key={title} onClick={()=>setMode(title)} aria-pressed={mode===title}><small>{num}</small><span><strong>{title}</strong><em>{title==='Duo Battle'?'COMING SOON':tag}</em></span><i aria-hidden="true">{mode===title?'◆':'›'}</i></button>)}</nav></aside>
    <div className="ml-center"><span className="ml-kicker">{current[2]}</span><h2>{mode==='Free-for-All'?<>DEFEND YOUR CORNER.<br/><span>OWN THE STREET.</span></>:mode==='Training'?<>EVERY LEGEND<br/><span>STARTS HERE.</span></>:mode==='Private Room'?<>YOUR COURT.<br/><span>YOUR CREW.</span></>:<>TWO SIDES.<br/><span>ONE VICTORY.</span></>}</h2><p>{current[3]}</p><div className="ml-match-tags"><span>{mode==='Free-for-All'?'03:00 MATCH':mode==='Training'?'FREE PRACTICE':mode==='Private Room'?'ONLINE MATCH':'COMING SOON'}</span><span>{local?'YOU + 3 RIVALS':'2–4 PLAYERS'}</span></div></div>
