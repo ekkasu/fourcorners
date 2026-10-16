@@ -4,7 +4,6 @@ import {createRoot} from 'react-dom/client';
 import FrontDoor from './FrontDoor.jsx';
 import './styles.css';
 import './responsive.css';
-import './desktop-layout.css';
 const GameApp=React.lazy(()=>import('./GameApp.jsx'));
 class BootBoundary extends React.Component{
  state={failed:false};static getDerivedStateFromError(){return {failed:true}}
