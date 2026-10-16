@@ -1,3 +1,4 @@
+import {chooseRivalShot,assessRivalGoal,rivalOffBallPosition} from './rival-tactics.js';
 import {canTouchBall} from './one-touch.js';
 import * as THREE from 'three';
 import {GOAL_WIDTH,PLAYER_LIMIT,confineBall} from './court-layout.js';
@@ -12,21 +13,12 @@ export const RIVAL_STYLES=[
  {name:'WALL',pressRange:.6,save:1.35,carry:.9,guardDist:.55},
  {name:'SNIPER',shootRange:1.4,aim:.65,tackleWin:.8,press:.95}];
 const styledLevel=(L,i)=>{const st=RIVAL_STYLES[i],out={...L,guardDist:st.guardDist||1};for(const k of Object.keys(st))if(typeof st[k]==='number'&&k in L)out[k]=L[k]*st[k];out.save=Math.min(.9,out.save);out.tackleWin=Math.min(.92,out.tackleWin);return out};
-// All corners have equal status. Spread possessions across surviving opponents,
-// then prefer an open, nearby goal instead of concentrating every attack on one corner.
 export function pickRivalTarget(s,i){
- const r=s.rivals[i],counts=s.attackCounts??=[0,0,0,0];
- const candidates=[0,1,2,3].filter(g=>g!==RIVAL_GOALS[i]&&s.alive[g]);
- const least=Math.min(...candidates.map(g=>counts[g]));
- let best=candidates[0],score=Infinity;
- for(const g of candidates){
-  if(counts[g]>least)continue;
-  const [gx,gz]=GOALS[g],crowding=s.rivals.filter((o,k)=>k!==i&&s.rc===k&&o.target===g).length;
-  const value=Math.hypot(gx-r.x,gz-r.z)+(g===r.lastTarget?4:0)+crowding*4;
-  if(value<score){best=g;score=value}
- }
- if(best!==undefined){counts[best]++;r.lastTarget=best}
- return best;
+ const plan=chooseRivalShot(s,i),r=s.rivals[i];
+ if(!plan)return null;
+ const counts=s.attackCounts??=[0,0,0,0];counts[plan.goal]++;
+ r.lastTarget=plan.goal;r.plan=plan;r.thinkAt=s.now+.5;
+ return plan.goal;
 }
 
 export function createRivalStepper({sfx,burst,touchBall,KICK_LEAD,KICKER_GRACE,ONE_TOUCH_WINDOW}){return function stepRivals(s,d){const L0=s.level||DIFFICULTY.normal,levels=[0,1,2].map(i=>styledLevel(L0,i));
@@ -44,11 +36,15 @@ export function createRivalStepper({sfx,burst,touchBall,KICK_LEAD,KICKER_GRACE,O
   // Fooled by a step-over: the rival keeps lunging the wrong way and stumbles to a stop.
   if(alive&&s.rc!==i&&r.fooledUntil>s.now){r.x=THREE.MathUtils.clamp(r.x+r.vx*d,-PLAYER_LIMIT,PLAYER_LIMIT);r.z=THREE.MathUtils.clamp(r.z+r.vz*d,-PLAYER_LIMIT,PLAYER_LIMIT);r.vx*=Math.exp(-3*d);r.vz*=Math.exp(-3*d);return}
   if(!alive&&s.rc===i)s.rc=-1;
-  if(alive&&s.rc===i){if(!s.alive[r.target])r.target=pickRivalTarget(s,i);const[ax,az]=GOALS[r.target];tx=ax*.82;tz=az*.82;speed=L.carry;
+  if(alive&&s.rc===i){
+   if(!r.plan||!s.alive[r.target]||s.now>=(r.thinkAt||0)){
+    const next=chooseRivalShot(s,i),current=assessRivalGoal(s,i,r.target);
+    if(next&&(!current||next.score>current.score+.7))r.target=next.goal;
+    r.plan=assessRivalGoal(s,i,r.target)||next;r.thinkAt=s.now+.5;
+   }
+   if(!r.plan)return;const ax=r.plan.x,az=r.plan.z;tx=ax*.82;tz=az*.82;speed=L.carry;r.role='carry';
    const defenders=[...(s.alive[2]?[s]:[]),...s.rivals.filter((o,k)=>k!==i&&s.alive[RIVAL_GOALS[k]])],near=defenders.reduce((a,o)=>!a||Math.hypot(o.x-r.x,o.z-r.z)<Math.hypot(a.x-r.x,a.z-r.z)?o:a,null),px=(near?.x??r.x)-r.x,pz=(near?.z??r.z)-r.z,pd=Math.hypot(px,pz);if(pd>0&&pd<2.6){const side=px*(tz-r.z)-pz*(tx-r.x)>0?-1:1;tx-=pz/pd*side*2.5;tz+=px/pd*side*2.5}}
-  else if(alive){const toGoal=Math.hypot(s.bx-gx,s.bz-gz)||1,threat=toGoal<6.5,used=s.oneTouch&&s.toucher===i;
-   if(!used&&(threat||(i===chaser&&(loose||best<L.pressRange)))){tx=s.bx;tz=s.bz;speed=threat&&toGoal<4.5?L.rush:L.press}
-   else{const k=Math.min(3*L.guardDist,toGoal*.45);tx=gx+(s.bx-gx)/toGoal*k;tz=gz+(s.bz-gz)/toGoal*k;speed=L.guard}}
+  else if(alive){const position=rivalOffBallPosition(s,i,chaser);tx=position.x;tz=position.z;r.role=position.role;speed=position.role==='press'?(position.urgent?L.rush:L.press):L.guard}
   if(alive&&loose&&Math.max(Math.abs(s.bx),Math.abs(s.bz))>10.3&&i!==chaser){const awayX=r.x-s.bx,awayZ=r.z-s.bz,away=Math.hypot(awayX,awayZ);if(away<2.5){const nx=away>.01?awayX/away:-Math.sign(s.bx||1),nz=away>.01?awayZ/away:-Math.sign(s.bz||1);tx=s.bx+nx*3;tz=s.bz+nz*3;speed=L.guard}}
   const dx=tx-r.x,dz=tz-r.z,dist=Math.hypot(dx,dz),want=dist>.25?Math.min(speed,dist*3):0;
   r.vx=THREE.MathUtils.damp(r.vx,dist?dx/dist*want:0,6,d);r.vz=THREE.MathUtils.damp(r.vz,dist?dz/dist*want:0,6,d);
@@ -56,8 +52,8 @@ export function createRivalStepper({sfx,burst,touchBall,KICK_LEAD,KICKER_GRACE,O
   if(alive&&loose&&s.rc<0&&!s.attached&&i===chaser&&r.cool<=0&&s.by<.5&&ballSpeed<=7&&canTouchBall(s,i)&&Math.hypot(s.bx-r.x,s.bz-r.z)<.9){s.attached=false;s.rc=i;r.target=pickRivalTarget(s,i);s.last=i;s.lock=.6;s.stealCool=.9;r.cool=L.shootDelay;s.controlUntil=s.now+L.controlGrace;r.touchUntil=s.now+.25+Math.random()*.35;touchBall(s,i);return}
   for(const o of [s,...s.rivals]){if(o===r||(o!==s&&!s.alive[RIVAL_GOALS[s.rivals.indexOf(o)]]))continue;const ox=r.x-o.x,oz=r.z-o.z,od=Math.hypot(ox,oz);if(od>0&&od<.9){r.x+=ox/od*(.9-od);r.z+=oz/od*(.9-od)}}
   r.x=THREE.MathUtils.clamp(r.x,-PLAYER_LIMIT,PLAYER_LIMIT);r.z=THREE.MathUtils.clamp(r.z,-PLAYER_LIMIT,PLAYER_LIMIT);
-  if(s.rc===i){const[ax,az]=GOALS[r.target],heading=Math.hypot(r.vx,r.vz)>.3?Math.atan2(r.vx,r.vz):Math.atan2(ax-r.x,az-r.z);s.bx=r.x+Math.sin(heading)*.65;s.bz=r.z+Math.cos(heading)*.65;s.by=s.bvx=s.bvz=s.bvy=0;{const bounded=confineBall(s.bx,s.bz);s.bx=bounded.x;s.bz=bounded.z}
-   if((r.cool<=0&&Math.hypot(ax-s.bx,az-s.bz)<L.shootRange)||(s.oneTouch&&s.now>=(r.touchUntil||0))){const miss=(Math.random()-.5)*L.aim,aimX=ax+(az?miss:0),aimZ=az+(ax?miss:0),ux=aimX-s.bx,uz=aimZ-s.bz,u=Math.hypot(ux,uz),power=L.shotSpeed+Math.random()*L.shotSpread;
+  if(s.rc===i){const ax=r.plan.x,az=r.plan.z,heading=Math.hypot(r.vx,r.vz)>.3?Math.atan2(r.vx,r.vz):Math.atan2(ax-r.x,az-r.z);s.bx=r.x+Math.sin(heading)*.65;s.bz=r.z+Math.cos(heading)*.65;s.by=s.bvx=s.bvz=s.bvy=0;{const bounded=confineBall(s.bx,s.bz);s.bx=bounded.x;s.bz=bounded.z}
+   if((r.cool<=0&&r.plan.openness>.3&&Math.hypot(ax-s.bx,az-s.bz)<L.shootRange+(r.plan.openness>.7?1.5:0))||(s.oneTouch&&s.now>=(r.touchUntil||0))){const miss=(Math.random()-.5)*L.aim,aimX=ax-GOALS[r.target][1]/11*miss,aimZ=az+GOALS[r.target][0]/11*miss,ux=aimX-s.bx,uz=aimZ-s.bz,u=Math.hypot(ux,uz),power=L.shotSpeed+Math.random()*L.shotSpread;
     s.rc=-1;s.ignore={who:i,until:s.now+KICKER_GRACE};s.bvx=ux/u*power;s.bvz=uz/u*power;s.bvy=.8+Math.random()*1.6;s.curve=(Math.random()-.5)*.8;s.last=i;s.lock=.25;r.cool=1.2;r.kickAt=s.now-KICK_LEAD;r.kickType='strike';sfx.kick(.7);burst(s.bx,s.bz,7,'kick',ux/u,uz/u)}
    return}
   if(!alive||r.cool>0||s.by>1.9||Math.hypot(s.bx-r.x,s.bz-r.z)>.75||!canTouchBall(s,i))return;

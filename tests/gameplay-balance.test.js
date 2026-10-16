@@ -1,28 +1,48 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {DIFFICULTY,pickRivalTarget,createRivalStepper} from '../src/rivals.js';
+import {chooseRivalShot,rivalOffBallPosition} from '../src/rival-tactics.js';
 import {touchBall} from '../src/one-touch.js';
 const step=createRivalStepper({sfx:{tackle(){},kick(){},save(){}},burst(){},touchBall,KICK_LEAD:.1,KICKER_GRACE:.3,ONE_TOUCH_WINDOW:.6});
 const state=()=>({x:0,z:0,bx:0,bz:.65,by:0,bvx:0,bvz:0,bvy:0,attached:true,rc:-1,oneTouch:false,toucher:null,stealCool:0,now:0,controlUntil:0,alive:[true,false,true,false],lives:[3,3,3,3],level:DIFFICULTY.easy,rivals:[{x:0,z:.9},{x:-10,z:0},{x:10,z:0}].map(r=>({...r,vx:0,vz:0,cool:0,target:2}))});
 
-test('each rival spreads attacks evenly across all surviving opponents',()=>{
+test('equally open goals receive attacks without a preferred player',()=>{
  for(let i=0;i<3;i++){
-  const s=state();s.alive=[true,true,true,true];
-  s.rivals[i].x=0;s.rivals[i].z=0;
+  const s=state();s.alive=[true,true,true,true];s.x=s.z=0;
+  s.rivals.forEach(r=>{r.x=r.z=0});
   const counts=[0,0,0,0];
-  for(let n=0;n<90;n++)counts[pickRivalTarget(s,i)]++;
+  for(let n=0;n<12;n++)counts[pickRivalTarget(s,i)]++;
   assert.equal(counts[[0,3,1][i]],0);
-  assert.deepEqual(counts.filter((_,g)=>g!==[0,3,1][i]),[30,30,30]);
+  assert.deepEqual(counts.filter((_,g)=>g!==[0,3,1][i]),[4,4,4]);
  }
 });
 
-test('combined attacks stay distributed and never target eliminated corners',()=>{
- const s=state();s.alive=[true,true,true,true];
- for(let n=0;n<120;n++)pickRivalTarget(s,n%3);
- assert.ok(Math.max(...s.attackCounts)-Math.min(...s.attackCounts)<=2);
+test('rivals take open opportunities and switch when a defender covers the lane',()=>{
+ const s=state();s.alive=[true,true,true,true];s.x=0;s.z=10;
+ Object.assign(s.rivals[0],{x:0,z:0});
+ Object.assign(s.rivals[1],{x:-10,z:0});
+ Object.assign(s.rivals[2],{x:0,z:0});
+ assert.equal(chooseRivalShot(s,0).goal,1,'open east goal beats defended goals');
+ Object.assign(s.rivals[2],{x:10,z:0});
+ s.x=0;s.z=0;
+ assert.equal(chooseRivalShot(s,0).goal,2,'human goal becomes a valid opportunity when open');
  s.alive[2]=false;
- for(let i=0;i<3;i++)for(let n=0;n<10;n++)assert.notEqual(pickRivalTarget(s,i),2);
+ for(let i=0;i<3;i++)for(let n=0;n<10;n++){
+  const target=pickRivalTarget(s,i);
+  assert.notEqual(target,2);assert.notEqual(target,[0,3,1][i]);
+ }
  s.alive=[false,false,true,true];assert.equal(pickRivalTarget(s,1),2);
+});
+
+test('off-ball rivals press and advance into interception positions',()=>{
+ const s=state();s.alive=[true,true,true,true];s.bx=s.bz=0;
+ for(let i=0;i<3;i++){
+  const p=rivalOffBallPosition(s,i,0);
+  if(i===0){assert.equal(p.role,'press');assert.equal(p.x,0);assert.equal(p.z,0)}
+  else {assert.equal(p.role,'intercept');assert.ok(Math.hypot(p.x,p.z)<7,'move away from the post and into play')}
+ }
+ s.oneTouch=true;s.toucher=0;
+ assert.equal(rivalOffBallPosition(s,0,0).role,'intercept','used touch must not chase possession');
 });
 
 test('a failed AI tackle leaves possession and ball velocity intact',t=>{
