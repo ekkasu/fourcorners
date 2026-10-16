@@ -31,3 +31,25 @@ test('the childhood court is available immediately without changing existing are
  assert.equal(arenaUnlocked('accra',{xp:0,arenaWins:{}}),true);
  assert.deepEqual(arenaRequirement('kumasi'),{previous:'accra',level:3});
 });
+
+test('all touch devices start without the crowd, shadows or decorative props',()=>{
+ for(const device of [{memory:16,cores:12},{memory:undefined,cores:undefined},{memory:8,cores:8}]){
+  const preset=GRAPHICS[initialQuality({...device,coarse:true})];
+  assert.equal(preset.crowd,false);assert.equal(preset.shadows,false);
+  assert.equal(preset.props,false);assert.equal(preset.effects,false);
+  assert.ok(preset.dpr<=.85);
+ }
+});
+
+test('mobile camera makes nearby players larger and still fits separated play',async()=>{
+ const {broadcastView,BALL_LIMIT,PLAYER_LIMIT}=await import('../src/court-layout.js');
+ const {PerspectiveCamera,Vector3}=await import('three');
+ const cameraFor=(view,aspect)=>{const c=new PerspectiveCamera(view.fov,aspect,.1,200);c.position.set(...view.position);c.lookAt(...view.lookAt);c.updateMatrixWorld();return c};
+ const aspect=844/390;
+ const height=mobile=>{const c=cameraFor(broadcastView(0,0,aspect,0,1.5,mobile),aspect);return Math.abs(new Vector3(0,2.4,1.5).project(c).y-new Vector3(0,0,1.5).project(c).y)};
+ assert.ok(height(true)>height(false)*1.3,'nearby characters should be at least 30% larger');
+ for(const aspect of [844/390,667/375,9/16])for(const bx of [-BALL_LIMIT,BALL_LIMIT])for(const bz of [-BALL_LIMIT,BALL_LIMIT])for(const px of [-PLAYER_LIMIT,PLAYER_LIMIT])for(const pz of [-PLAYER_LIMIT,PLAYER_LIMIT]){
+  const c=cameraFor(broadcastView(bx,bz,aspect,px,pz,true),aspect);
+  for(const[x,z]of[[bx,bz],[px,pz]])for(const y of [0,2.4]){const p=new Vector3(x,y,z).project(c);assert.ok(Math.abs(p.x)<=.83&&Math.abs(p.y)<=.83,`mobile framing at ${aspect}: ${p.x},${p.y}`)}
+ }
+});
