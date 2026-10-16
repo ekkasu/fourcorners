@@ -1,4 +1,4 @@
-import React,{Suspense,useEffect,useMemo} from 'react';
+import React,{Suspense,useEffect,useMemo,useRef} from 'react';
 import{useLoader}from'@react-three/fiber';
 import{Environment as SkyLight,Text,useGLTF,useTexture}from'@react-three/drei';
 import*as THREE from'three';
@@ -157,7 +157,7 @@ function CourtBorder({type,wallTex}){const e=12.35,sides=[[0,-e,25],[0,e,25],[-e
 const GRASS_GRAIN={base:205,contrast:3.4};
 const MOW_STRIPES=[0,2,4,6].map(i=>-24.5/2+(i+.5)*24.5/8);
 
-export function ArenaEnvironment({arena}){
+function StreetEnvironment({arena,detailed=true}){
  const theme=THEMES[arena.id]||THEMES.accra;
  const court=useSurface(theme.courtFloor||theme.floor,6,true,theme.grass?GRASS_GRAIN:false),ground=useSurface(theme.floor,40),wall=useSurface(theme.wall,2.2,true,!!theme.paint),roof=useSurface('rusty_corrugated_iron',2,true);
  const buildings=useMemo(()=>{let n=0;const make=(x,z,rotation,width,height,i)=>({key:n,position:[x,0,z],rotation,width,height,tint:theme.tints[n%theme.tints.length],band:theme.bands[n%theme.bands.length],sign:n++%2===0?theme.signs[(n>>1)%theme.signs.length]:null});const low=theme.roof&&arena.type==='Rural';const list=[];
@@ -170,11 +170,75 @@ export function ArenaEnvironment({arena}){
   {theme.grass&&MOW_STRIPES.map((x,i)=><mesh key={i} rotation={[-Math.PI/2,0,0]} position={[x,.006,0]} receiveShadow><planeGeometry args={[24.5/8,24.5]}/><meshStandardMaterial color="#0b2a0b" transparent opacity={.2} depthWrite={false}/></mesh>)}
   <CourtMural id={arena.id}/>
   <CourtBorder type={theme.border} wallTex={wall}/>
-  {buildings.map(({key,...b})=><Building key={key} {...b} wallTex={wall} roofTex={theme.roof?roof:null}/>)}
+  {buildings.filter((_,i)=>detailed||i%2===0).map(({key,...b})=><Building key={key} {...b} wallTex={wall} roofTex={theme.roof?roof:null}/>)}
   {theme.palms?[[-17,-16,0],[17,-15,2],[-17.5,9,4],[17,11,1],[-15,22,3],[15.5,23,5]].map(([x,z,t],i)=><Palm key={i} position={[x,0,z]} height={5+(i%3)*.6} turn={t}/>)
    :[[-17,5],[17,5]].map(([x,z],i)=><group key={i} position={[x,0,z]}><mesh position={[0,1.2,0]}><cylinderGeometry args={[.17,.25,2.4,9]}/><meshStandardMaterial color="#594636"/></mesh><mesh position={[0,3,0]} castShadow><sphereGeometry args={[2,12,10]}/><meshStandardMaterial color="#3a633c"/></mesh><mesh position={[.6,3.9,.3]} castShadow><sphereGeometry args={[1.3,12,10]}/><meshStandardMaterial color="#44733f"/></mesh></group>)}
   {theme.poles&&<><PowerLine x={-15.5}/><PowerLine x={15.5}/></>}
-  {(PROP_SETS[arena.id]||STREET).map(([name,x,z,rotation,stack],i)=><AssetBoundary key={name+i}><Suspense fallback={null}><Prop name={name} position={[x,0,z]} rotation={rotation} stack={stack}/></Suspense></AssetBoundary>)}
+  {(detailed?(PROP_SETS[arena.id]||STREET):[]).map(([name,x,z,rotation,stack],i)=><AssetBoundary key={name+i}><Suspense fallback={null}><Prop name={name} position={[x,0,z]} rotation={rotation} stack={stack}/></Suspense></AssetBoundary>)}
   {arena.id!=='london'&&[[-15,-15,Math.PI/4,'#2f8f6a','WATER · SNACKS'],[15,-15,-Math.PI/4,'#c9522f','TOP UP HERE']].map(([x,z,r,c,l])=><Kiosk key={l} position={[x,0,z]} rotation={r} color={c} label={l}/>)}
  </>
 }
+
+// Reference: unfinished sandcrete house in Adenta New-Legon, Ghana.
+// https://ghanaproperty.org/africa/ghana/greater-accra-region/property/3-bedroom-uncompleted-house-for-sale-at-adenta-new-legon-1
+// Photos inform the architecture only; no third-party photographs are shipped.
+function sandcreteTexture(){
+ const canvas=document.createElement('canvas');canvas.width=512;canvas.height=256;const ctx=canvas.getContext('2d'),random=seeded(42791);
+ ctx.fillStyle='#b2afa4';ctx.fillRect(0,0,512,256);
+ for(let row=0;row<4;row++)for(let col=-1;col<4;col++){
+  const x=col*171+(row%2)*85.5,y=row*64,tone=136+Math.floor(random()*30);
+  ctx.fillStyle=`rgb(${tone},${tone-1},${tone-7})`;ctx.fillRect(x+2,y+2,167,60);
+  for(let n=0;n<350;n++){const v=Math.floor(random()*80)+90;ctx.fillStyle=`rgba(${v},${v},${v-5},.18)`;ctx.fillRect(x+random()*168,y+random()*61,1+random()*3,1+random()*2)}
+  ctx.strokeStyle='#65665a44';ctx.lineWidth=1;ctx.strokeRect(x+3,y+3,165,58);
+ }
+ const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;texture.wrapS=texture.wrapT=THREE.RepeatWrapping;texture.anisotropy=4;return texture;
+}
+function Masonry({map,position,width,height,depth=.3}){
+ const tiled=useMemo(()=>{const t=map.clone();t.repeat.set(width/2.4,height/1.2);return t},[map,width,height]);useEffect(()=>()=>tiled.dispose(),[tiled]);
+ return <mesh position={position} castShadow receiveShadow><boxGeometry args={[width,height,depth]}/><meshStandardMaterial map={tiled} color="#e0dfd4" roughness={1}/></mesh>
+}
+function UnfinishedBay({map,position,rotation=0,door=false,partial=false}){
+ const width=8,height=3.25,opening=door?1.7:2.6,sill=door?0:1.05,top=2.5,jamb=(width-opening)/2;
+ return <group position={position} rotation={[0,rotation,0]}>
+  {partial?<Masonry map={map} position={[0,.75,0]} width={width} height={1.5}/>:<>
+   {[-1,1].map(side=><Masonry key={side} map={map} position={[side*(opening/2+jamb/2),height/2,0]} width={jamb} height={height}/>)}
+   {sill>0&&<Masonry map={map} position={[0,sill/2,0]} width={opening} height={sill}/>}
+   <Masonry map={map} position={[0,(top+height)/2,0]} width={opening} height={height-top}/>
+   <mesh position={[0,top+.1,0]} castShadow><boxGeometry args={[opening+.35,.2,.38]}/><meshStandardMaterial color="#bcb9aa" roughness={1}/></mesh>
+  </>}
+ </group>
+}
+function SiteRubble({detailed}){
+ const stones=useRef(),grass=useRef();
+ useEffect(()=>{const random=seeded(9917),dummy=new THREE.Object3D();for(let i=0;i<80;i++){const side=i%2?1:-1;dummy.position.set(side*(19.2+random()*4),.06+random()*.08,-21+random()*40);dummy.rotation.set(random(),random()*6,random());dummy.scale.set(.12+random()*.35,.08+random()*.2,.15+random()*.35);dummy.updateMatrix();stones.current?.setMatrixAt(i,dummy.matrix)}if(stones.current)stones.current.instanceMatrix.needsUpdate=true;for(let i=0;i<40;i++){dummy.position.set((i%2?1:-1)*(22+random()*5),.18,-24+random()*45);dummy.rotation.set(0,random()*6,0);dummy.scale.set(.3+random()*.5,.3+random()*.5,.3+random()*.5);dummy.updateMatrix();grass.current?.setMatrixAt(i,dummy.matrix)}if(grass.current)grass.current.instanceMatrix.needsUpdate=true},[detailed]);
+ if(!detailed)return null;return <><instancedMesh ref={stones} args={[null,null,80]}><dodecahedronGeometry args={[1,0]}/><meshStandardMaterial color="#8e8e80" roughness={1}/></instancedMesh><instancedMesh ref={grass} args={[null,null,40]}><coneGeometry args={[.45,1,4]}/><meshStandardMaterial color="#78844c" roughness={1}/></instancedMesh></>
+}
+function UncompletedBuilding({detailed}){
+ const slab=useSurface('clay_plaster',11,true,true),earth=useSurface('red_laterite_soil_stones',35),concrete=useSurface('clay_plaster',2.5,true,true),roof=useSurface('rusty_corrugated_iron',2,true);
+ const masonry=useMemo(sandcreteTexture,[]);useEffect(()=>()=>masonry.dispose(),[masonry]);
+ const columns=useMemo(()=>[-18,18].flatMap(x=>[-18,-10,-2,6,14,18].map(z=>[x,z])).concat([-16,-8,0,8,16].map(x=>[x,-18])),[]);
+ const blocks=useMemo(()=>{const result=[];for(const[cx,cz]of[[-15,-15],[15,16]])for(let row=0;row<3;row++)for(let k=0;k<5-row;k++)result.push([cx+(k-2)*.8+(row%2)*.4,.2+row*.4,cz]);return result},[]);
+ return <>
+  <SkyLight files={TEX+'sky_1k.hdr'} background environmentIntensity={.9}/>
+  <mesh rotation={[-Math.PI/2,0,0]} position={[0,-.3,0]} receiveShadow><planeGeometry args={[200,200]}/><meshStandardMaterial {...earth} color="#ad9879" roughness={1}/></mesh>
+  <mesh position={[0,-.15,0]} receiveShadow><boxGeometry args={[38,.3,42]}/><meshStandardMaterial {...slab} color="#8d8f82" roughness={1}/></mesh>
+  <mesh rotation={[-Math.PI/2,0,0]} position={[0,.008,0]} receiveShadow><planeGeometry args={[24.5,24.5]}/><meshStandardMaterial {...slab} color="#6b6e64" roughness={1}/></mesh>
+  <CourtBorder type="wall" wallTex={concrete}/>
+  {/* Unframed window and door openings, staggered blockwork and concrete lintels. */}
+  {[-12,-4,4,12].map((x,i)=><UnfinishedBay key={x} map={masonry} position={[x,0,-18]} door={i===1}/>)}
+  {[-18,18].flatMap((x,side)=>[-14,-6,2,10].map((z,i)=><UnfinishedBay key={x+','+z} map={masonry} position={[x,0,z]} rotation={Math.PI/2} door={i===2} partial={i===3||(!detailed&&i===2)}/>))}
+  {/* Roofless rooms beyond the playing area: this reads as a house shell, not a warehouse frame. */}
+  <Masonry map={masonry} position={[0,1.4,-25]} width={36} height={2.8}/>
+  {[-16,-8,0,8,16].map(x=><group key={x} position={[x,0,-21.5]} rotation={[0,Math.PI/2,0]}><Masonry map={masonry} position={[0,1.2,0]} width={7} height={2.4}/></group>)}
+  {columns.map(([x,z],i)=><group key={i} position={[x,0,z]}><mesh position={[0,1.7,0]} castShadow receiveShadow><boxGeometry args={[.45,3.4,.45]}/><meshStandardMaterial {...concrete} color="#b7b5a6" roughness={1}/></mesh>{detailed&&[-.13,.13].flatMap(dx=>[-.13,.13].map(dz=><mesh key={dx+','+dz} position={[dx,3.85,dz]}><cylinderGeometry args={[.018,.018,.95,4]}/><meshStandardMaterial color="#765039" roughness={1}/></mesh>))}</group>)}
+  <mesh position={[0,3.3,-18]} castShadow><boxGeometry args={[36,.3,.45]}/><meshStandardMaterial {...concrete} color="#b4b1a2" roughness={1}/></mesh>
+  {[-18,18].map(x=><mesh key={x} position={[x,3.3,-5]} castShadow><boxGeometry args={[.45,.3,26]}/><meshStandardMaterial {...concrete} color="#b4b1a2" roughness={1}/></mesh>)}
+  {/* Timber props and leftover formwork, as seen in the Adenta reference. */}
+  {detailed&&[-4,4,12].map(x=><group key={x} position={[x,0,-17.8]}><mesh position={[.6,1.25,0]} rotation={[0,0,.04]} castShadow><boxGeometry args={[.12,2.5,.12]}/><meshStandardMaterial color="#9e8054" roughness={1}/></mesh><mesh position={[-1.4,1.4,-.05]} rotation={[0,0,-.3]}><boxGeometry args={[.16,2.9,.12]}/><meshStandardMaterial color="#9b7f55" roughness={1}/></mesh></group>)}
+  {detailed&&blocks.map((position,i)=><group key={i} position={position}><mesh castShadow receiveShadow><boxGeometry args={[.75,.37,.42]}/><meshStandardMaterial color={i%3?'#a29f91':'#b5b1a1'} roughness={1}/></mesh>{[-.18,.18].map(x=><mesh key={x} position={[x,.187,0]} rotation={[-Math.PI/2,0,0]}><planeGeometry args={[.18,.25]}/><meshBasicMaterial color="#57584e"/></mesh>)}</group>)}
+  {[-1,1].map(side=><mesh key={side} position={[side*21,.5,9]} receiveShadow><coneGeometry args={[2.1,1.2,12]}/><meshStandardMaterial color="#c3aa7e" roughness={1}/></mesh>)}
+  <SiteRubble detailed={detailed}/>
+  {detailed&&[-25,-10,10,25].map((x,i)=><Building key={x} position={[x,0,-36]} rotation={0} width={7} height={3+i%2*.4} tint={['#c2baa0','#d6c593','#c5c8b4','#d5b9a1'][i]} band="#77765b" wallTex={concrete} roofTex={roof}/>)}
+ </>
+}
+export function ArenaEnvironment({arena,detailed=true}){return arena.id==='uncompleted'?<UncompletedBuilding detailed={detailed}/>:<StreetEnvironment arena={arena} detailed={detailed}/>}
