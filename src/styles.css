@@ -126,3 +126,5 @@
 .touch-rule.window,.touch-rule.used,.touch-rule.taker{opacity:1}.touch-rule i{display:block;height:6px;width:0;max-width:180px;min-width:0;background:var(--accent);border-radius:4px;box-shadow:0 0 0 1px #101e16}.touch-rule:not(.window) i{display:none}
 .touch-rule span{display:none;font-weight:900;font-size:11px;letter-spacing:.1em;padding:4px 10px;border-radius:999px;background:#101e16e6;color:var(--accent);white-space:nowrap}.touch-rule.window .strike{display:block}.touch-rule.used .used{display:block;color:var(--accent)}.touch-rule.taker .taker{display:block;color:#fff}
 .touch-rule.window{width:180px}
+
+.match-intro{position:absolute;inset:0;z-index:16;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#0b1520c9;color:var(--text);pointer-events:auto}.match-intro>span{font-size:40px}.match-intro strong{font:900 40px "Barlow Condensed",sans-serif;letter-spacing:.12em}
