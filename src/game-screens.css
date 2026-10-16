@@ -15,3 +15,5 @@
 .online-room-settings{border-top:1px solid #85c9bf30;padding:16px 0}.online-room-settings label{display:block;font-size:8px;letter-spacing:.1em;color:#c4d2dc;margin:10px 0 7px}.online-room-settings select{width:100%;border:1px solid #85c9bf55;border-radius:0;background:#131a15;color:var(--text);padding:10px;font-size:12px}.online-room-settings p{font-size:9px;color:var(--muted)}.online-roster{margin:16px 0}
 
 .game-shell:not(.screen-home):not(.screen-modes):not(.screen-game){background-color:var(--surface);background-blend-mode:normal,luminosity}
+
+.room-invite-share{width:100%;margin:14px 0}.room-copy-actions{display:flex;gap:8px;flex-wrap:wrap}.room-copy-actions .btn{flex:1;font-size:15px;padding:10px;min-height:44px;white-space:nowrap}.room-invite-share>label{display:block;margin:14px 0 7px;font-size:9px;letter-spacing:.12em;color:var(--muted)}.room-invite-link{display:block;width:100%;font-size:12px!important;letter-spacing:0;text-transform:none;min-width:0}.room-invite-share p{font-size:11px;line-height:1.6;color:var(--muted);margin:8px 0}.online-room-heading>strong{user-select:all}

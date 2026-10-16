@@ -1,0 +1,148 @@
+/* Keep desktop game screens inside one viewport, even on very wide monitors. */
+@media(min-width:901px){
+ .game-shell:not(.screen-game):not(.screen-home):not(.screen-modes)>.main{max-width:1240px;margin:0 auto}
+ .game-shell .game-topbar{width:100%;max-width:1240px;height:60px;margin:0 auto;padding:0 20px}
+ .game-shell .online-screen{grid-template-columns:minmax(180px,230px) minmax(240px,300px) minmax(280px,360px);justify-content:center;align-items:start;gap:22px;padding:20px;min-height:0;height:calc(100dvh - 60px)}
+ .online-screen .online-intro{padding-top:24px}
+ .online-screen .online-intro h1{font-size:46px;margin:12px 0}
+ .online-screen .online-preview-note{margin-top:22px}
+ .online-screen .online-status{margin-top:18px}
+ .online-screen .online-connect,.online-screen .online-roster{padding:16px;margin:0}
+ .online-screen .online-connect h2{font-size:29px;margin:6px 0 14px}
+ .online-screen .room-help{font-size:11px;line-height:1.5;margin:0 0 14px}
+ .online-screen .online-connect>.btn{min-height:40px;font-size:17px;padding:9px 12px}
+ .online-screen .online-divider{margin:16px 0}
+ .online-screen .online-connect .room-code-input{font-size:23px;padding:10px;margin:8px 0 12px}
+ .online-screen .online-room-heading{gap:5px;padding-bottom:10px}
+ .online-screen .online-room-heading>strong{font-size:32px}
+ .online-screen .room-invite-share{margin:6px 0}
+ .online-screen .room-copy-actions .btn{min-height:36px;padding:7px;font-size:13px}
+ .online-screen .room-invite-share>label{margin:8px 0 5px;font-size:8px}
+ .online-screen .room-invite-link{height:34px;padding:7px 9px}
+ .online-screen .room-invite-share p{font-size:10px;line-height:1.4;margin:5px 0}
+ .online-screen .online-slots{margin:8px 0}
+ .online-screen .online-slot{min-height:44px;padding:7px 0;gap:10px}
+ .online-screen .online-slot strong{font-size:17px}
+ .online-screen .online-slot small{margin-top:2px}
+ .online-screen .online-room-settings{padding:5px 0 9px}
+ .online-screen .online-room-settings label{margin:6px 0 4px}
+ .online-screen .online-room-settings select{padding:7px 9px;height:32px}
+ .online-screen .online-room-settings p{margin:5px 0;font-size:8px}
+ .online-screen .online-roster-actions{gap:8px;margin-top:8px}
+ .online-screen .online-roster-actions .btn{min-height:38px;padding:8px 10px;font-size:15px}
+
+ .match-lobby{height:100dvh;min-height:0}
+ .match-lobby .ml-top{height:60px;max-width:1200px;margin:0 auto}
+ .match-lobby .ml-layout{grid-template-columns:220px minmax(200px,1fr) 320px;gap:28px;max-width:1200px;margin:0 auto;padding:20px 0;min-height:0;height:calc(100dvh - 104px);align-items:center}
+ .match-lobby .ml-center{align-self:center;padding:0}
+ .match-lobby .ml-mode-list h1{font-size:48px;margin:12px 0 20px}
+ .match-lobby .ml-mode-list nav>button{padding:13px 10px}
+ .match-lobby .ml-center h2{font-size:34px}
+ .match-lobby .ml-options{padding:16px}
+ .match-lobby .ml-options-heading{padding-bottom:10px}
+ .match-lobby .ml-arena{padding:10px 0}
+ .match-lobby .ml-arena strong{font-size:20px;margin:4px 0}
+ .match-lobby .ml-setting{margin-top:10px}
+ .match-lobby .ml-setting>div{margin-top:6px}
+ .match-lobby .ml-setting button{min-height:30px;padding:6px 5px}
+ .match-lobby .ml-setting .ml-toggle{min-height:34px;padding:8px 10px;margin-top:6px}
+ .match-lobby .ml-setting>p{margin:6px 0 0;line-height:1.4}
+ .match-lobby .ml-ready{margin:14px 0 8px}
+ .match-lobby .ml-kickoff{padding:10px 14px;font-size:20px;min-height:40px}
+ .match-lobby .ml-howto{padding-top:10px}
+ .match-lobby .ml-bottom{max-width:1200px;margin:0 auto;min-height:44px}
+
+ .game-shell .arena-screen{height:calc(100dvh - 60px);min-height:0;padding:20px;grid-template-columns:260px minmax(0,1fr);gap:24px}
+ .arena-screen .arena-selector h1{font-size:44px;margin:12px 0 18px}
+ .arena-screen .arena-selector>.pills{margin-bottom:14px}
+ .arena-screen .arena-selector nav{gap:6px}
+ .arena-screen .arena-option{min-height:56px;padding:10px}
+ .arena-screen .arena-option strong{font-size:20px}
+ .arena-screen .arena-preview{height:100%;min-height:0}
+ .arena-screen .arena-preview-label{padding:22px}
+ .arena-screen .arena-preview-label h2{font-size:36px}
+
+ .game-shell.screen-locker .locker{height:calc(100dvh - 60px);min-height:0;padding:20px;grid-template-columns:160px minmax(220px,1fr) 350px;gap:22px}
+ .game-shell.screen-locker .locker-categories h1{font-size:44px;margin-bottom:20px}
+ .game-shell.screen-locker .locker-categories>button{font-size:21px;padding:11px 8px}
+ .game-shell.screen-locker .locker-stage{min-height:0}
+ .game-shell.screen-locker .locker-player{height:calc(100% - 110px);min-height:0}
+ .game-shell.screen-locker .locker-panels{padding:18px}
+ .game-shell.screen-locker .locker-panels>h2{font-size:30px;margin:6px 0 12px}
+ .game-shell.screen-locker .locker-panel{padding-top:12px;margin:10px 0}
+ .game-shell.screen-locker .locker-panel h3{font-size:20px;margin:4px 0 10px}
+ .game-shell.screen-locker .swatches{gap:8px}
+
+ .front-door.fc-menu{height:100dvh;min-height:0}
+ .front-door.fc-menu .fc-menu-body{width:420px;margin-left:max(32px,calc((100vw - 1240px)/2));padding:30px 0 75px}
+ .front-door.fc-menu .fc-brand h1{font-size:74px}
+ .front-door.fc-menu .fc-brand p{margin-top:14px;font-size:9px}
+ .front-door.fc-menu .fc-menu-kicker{margin:20px 0 10px}
+ .front-door.fc-menu .fc-main-menu{gap:0}
+ .front-door.fc-menu .fc-main-menu button{font-size:27px;min-height:38px;padding:6px 12px 6px 0}
+ .front-door.fc-menu .fc-menu-description{margin-top:12px;font-size:11px}
+ .front-door.fc-menu .fc-profile{top:24px;right:max(32px,calc((100vw - 1240px)/2))}
+ .front-door.fc-menu .fc-menu-fullscreen{top:96px;right:max(32px,calc((100vw - 1240px)/2))}
+ .front-door.fc-menu .fc-menu-footer{left:max(32px,calc((100vw - 1240px)/2));right:max(32px,calc((100vw - 1240px)/2));min-height:48px}
+ .front-door.fc-menu .fc-court-note{right:max(32px,calc((100vw - 1240px)/2));bottom:82px}
+}
+@media(min-width:901px) and (max-height:650px){
+ .game-shell .online-screen{padding-top:10px;padding-bottom:10px}
+ .online-screen .online-slot{min-height:36px;padding:4px 0}
+ .online-screen .room-invite-share p{display:none}
+ .online-screen .online-room-settings p{display:none}
+ .online-screen .online-connect,.online-screen .online-roster{padding:12px}
+ .match-lobby .ml-layout{padding:10px 0;gap:20px}
+ .match-lobby .ml-options{padding:12px}
+ .match-lobby .ml-setting{margin-top:7px}
+ .match-lobby .ml-mode-list h1{font-size:40px}
+ .arena-screen .arena-option{min-height:44px;padding:6px 10px}
+ .arena-screen .arena-selector h1{font-size:36px;margin:8px 0 12px}
+ .front-door.fc-menu .fc-menu-body{padding-top:20px}
+ .front-door.fc-menu .fc-brand h1{font-size:54px}
+ .front-door.fc-menu .fc-main-menu button{font-size:23px;min-height:31px;padding:4px 0}
+ .front-door.fc-menu .fc-menu-kicker{margin:14px 0 6px}
+}
+@media(min-width:901px) and (max-height:800px){
+ .online-screen .online-room-heading>strong{line-height:1}
+ .online-screen .online-slot{min-height:40px;padding:5px 0}
+ .online-screen .online-connect,.online-screen .online-roster{padding:14px}
+ .online-screen .online-room-settings{padding:4px 0 6px}
+ .online-screen .online-room-settings label{margin-top:4px}
+ .online-screen .room-invite-share p{margin:4px 0;font-size:9px}
+}
+@media(min-width:901px){
+ .game-shell.screen-locker .locker-panels{padding:14px}
+ .game-shell.screen-locker .locker-panels>h2{margin-bottom:8px}
+ .game-shell.screen-locker .locker-panels .label{margin:10px 0 6px}
+ .game-shell.screen-locker .locker-panels .input{padding:10px}
+}
+@media(min-width:901px) and (max-height:650px){
+ .online-screen .online-room-settings{display:grid;grid-template-columns:90px minmax(0,1fr);gap:5px 8px;align-items:center}
+ .online-screen .online-room-settings label{margin:0}
+ .match-lobby .ml-ready{margin:8px 0 6px}
+ .match-lobby .ml-kickoff{min-height:36px;padding:8px 12px;font-size:18px}
+ .match-lobby .ml-arena{padding:7px 0}
+}
+@media(min-width:901px){.online-screen .online-intro{grid-column:auto;grid-row:auto}}
+@media(min-width:901px) and (max-height:650px){
+ .online-screen .online-roster{padding:12px}
+ .online-screen .online-slot strong{font-size:15px;line-height:1.1}
+ .online-screen .online-slot small{line-height:1.2}
+}
+
+@media(min-width:901px){
+ .game-shell.screen-locker .locker-panel{padding-top:8px;margin:8px 0}
+ .game-shell.screen-locker .swatches[aria-label="Kit"]{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+ .game-shell.screen-locker .swatches.small{grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-bottom:4px}
+ .game-shell.screen-locker .swatch-btn{gap:4px;padding:3px 0}
+ .game-shell.screen-locker .swatches.small .swatch-btn span{width:27px;height:27px}
+ .game-shell.screen-locker .swatch-btn small{font-size:8px}
+}
+@media(min-width:901px) and (max-height:650px){.game-shell .online-screen{padding-top:8px}}
+@media(min-width:901px) and (max-height:650px){
+ .match-lobby .ml-options-heading{padding-bottom:6px}
+ .match-lobby .ml-setting{margin-top:5px}
+ .match-lobby .ml-arena{padding:5px 0}
+ .match-lobby .ml-setting>p{font-size:9px}
+}
