@@ -1,3 +1,4 @@
+import {stepDribble} from '../src/dribbling.js';
 import {collideGoalBlocks,GOAL_WIDTH,GOAL_CLEAR_HEIGHT,PLAYER_LIMIT,confineBall,BALL_RADIUS} from '../src/court-layout.js';
 export const ARENAS=['uncompleted','accra','kumasi','village','school','london'];
 const HOMES=[[0,7],[0,-7],[7,0],[-7,0]],SIDES=[2,0,1,3];
@@ -20,15 +21,15 @@ export function stepMatch(m,dt=1/60){
  if(m.pause>0){m.pause=Math.max(0,m.pause-dt);return}
  const b=m.ball;
  for(const p of m.players){
-  if(!p.lives||!p.connected)continue;if(m.elapsed-p.lastInput>.35)p.input={};
+  if(!p.lives||!p.connected)continue;if(m.elapsed-p.lastInput>.35){p.input={};p.vx=p.vz=0}
   const c=p.input,len=Math.max(1,Math.hypot(c.x||0,c.z||0)),run=c.sprint&&p.stamina>.05&&len>0,speed=run?7.5:5;
-  p.stamina=clamp(p.stamina+(run?-.3:.18)*dt,0,1);p.vx=(c.x||0)/len*speed;p.vz=(c.z||0)/len*speed;
+  p.stamina=clamp(p.stamina+(run?-.3:.18)*dt,0,1);const response=1-Math.exp(-12*dt);p.vx+=((c.x||0)/len*speed-p.vx)*response;p.vz+=((c.z||0)/len*speed-p.vz)*response;
   p.x=clamp(p.x+p.vx*dt,-PLAYER_LIMIT,PLAYER_LIMIT);p.z=clamp(p.z+p.vz*dt,-PLAYER_LIMIT,PLAYER_LIMIT);if(Math.hypot(p.vx,p.vz)>.1)p.angle=Math.atan2(p.vx,p.vz);p.cooldown=Math.max(0,p.cooldown-dt);
   if(c.shoot&&p.charge===null)p.charge=m.elapsed;
   const released=(c.release||0)>p.lastRelease||(!c.shoot&&p.charge!==null);
   if(released){p.lastRelease=Math.max(p.lastRelease,c.release||0);if(b.owner===p.id){const charge=clamp((m.elapsed-(p.charge??m.elapsed))/.9,0,1),speed=10+11*charge;b.owner=null;b.vx=Math.sin(p.angle)*speed;b.vz=Math.cos(p.angle)*speed;b.vy=.6+charge*3;b.last=p.id;p.shots++;p.cooldown=.35;announce(m,{type:'kick',player:p.id})}else if(p.cooldown===0&&Math.hypot(b.x-p.x,b.z-p.z)<1.6&&b.y<.9){b.owner=p.id;b.last=p.id;p.cooldown=.4;announce(m,{type:'tackle',player:p.id})}p.charge=null}
  }
- if(b.owner){const p=m.players.find(p=>p.id===b.owner);if(!p?.lives){b.owner=null}else{b.x=p.x+Math.sin(p.angle)*.65;b.z=p.z+Math.cos(p.angle)*.65;b.y=BALL_RADIUS;b.vx=b.vz=b.vy=0;const bounded=confineBall(b.x,b.z);b.x=bounded.x;b.z=bounded.z}}
+ if(b.owner){const p=m.players.find(p=>p.id===b.owner);if(!p?.lives){b.owner=null}else{if(!stepDribble(b,p,dt)){b.owner=null;p.cooldown=.12}b.y=BALL_RADIUS;b.vy=0}}
  if(!b.owner){b.x+=b.vx*dt;b.z+=b.vz*dt;b.y=Math.max(BALL_RADIUS,b.y+b.vy*dt);if(b.y>BALL_RADIUS)b.vy-=9.8*dt;else b.vy=Math.abs(b.vy)>.8?-b.vy*.35:0;const drag=Math.exp(-.65*dt);b.vx*=drag;b.vz*=drag;
   for(const p of m.players){if(!p.lives||!p.connected||p.cooldown>0)continue;if(b.y<.8&&Math.hypot(b.x-p.x,b.z-p.z)<.85){b.owner=p.id;b.last=p.id;break}}
  }

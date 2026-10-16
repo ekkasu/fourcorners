@@ -78,7 +78,7 @@ test('failed tackles are rate limited at both 30 and 120 fps',t=>{
 
 test('Easy carriers wait before shooting and use slower shots',t=>{
  t.mock.method(Math,'random',()=>.5);
- const s=state();Object.assign(s,{x:10,z:10,attached:false,rc:1,alive:[true,false,true,true]});
+ const s=state();Object.assign(s,{x:10,z:10,bx:0,bz:-6.4,attached:false,rc:1,alive:[true,false,true,true]});
  Object.assign(s.rivals[0],{x:10,z:0,cool:10});
  Object.assign(s.rivals[1],{x:0,z:-7,target:0,cool:DIFFICULTY.easy.shootDelay});
  for(let n=0;n<60;n++){s.now+=1/60;step(s,1/60)}

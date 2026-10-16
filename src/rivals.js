@@ -1,3 +1,4 @@
+import {stepDribble} from './dribbling.js';
 import {chooseRivalShot,assessRivalGoal,rivalOffBallPosition} from './rival-tactics.js';
 import {canTouchBall} from './one-touch.js';
 import * as THREE from 'three';
@@ -52,7 +53,7 @@ export function createRivalStepper({sfx,burst,touchBall,KICK_LEAD,KICKER_GRACE,O
   if(alive&&loose&&s.rc<0&&!s.attached&&i===chaser&&r.cool<=0&&s.by<.5&&ballSpeed<=7&&canTouchBall(s,i)&&Math.hypot(s.bx-r.x,s.bz-r.z)<.9){s.attached=false;s.rc=i;r.target=pickRivalTarget(s,i);s.last=i;s.lock=.6;s.stealCool=.9;r.cool=L.shootDelay;s.controlUntil=s.now+L.controlGrace;r.touchUntil=s.now+.25+Math.random()*.35;touchBall(s,i);return}
   for(const o of [s,...s.rivals]){if(o===r||(o!==s&&!s.alive[RIVAL_GOALS[s.rivals.indexOf(o)]]))continue;const ox=r.x-o.x,oz=r.z-o.z,od=Math.hypot(ox,oz);if(od>0&&od<.9){r.x+=ox/od*(.9-od);r.z+=oz/od*(.9-od)}}
   r.x=THREE.MathUtils.clamp(r.x,-PLAYER_LIMIT,PLAYER_LIMIT);r.z=THREE.MathUtils.clamp(r.z,-PLAYER_LIMIT,PLAYER_LIMIT);
-  if(s.rc===i){const ax=r.plan.x,az=r.plan.z,heading=Math.hypot(r.vx,r.vz)>.3?Math.atan2(r.vx,r.vz):Math.atan2(ax-r.x,az-r.z);s.bx=r.x+Math.sin(heading)*.65;s.bz=r.z+Math.cos(heading)*.65;s.by=s.bvx=s.bvz=s.bvy=0;{const bounded=confineBall(s.bx,s.bz);s.bx=bounded.x;s.bz=bounded.z}
+  if(s.rc===i){const ax=r.plan.x,az=r.plan.z,heading=Math.hypot(r.vx,r.vz)>.3?Math.atan2(r.vx,r.vz):Math.atan2(ax-r.x,az-r.z);const b={x:s.bx,z:s.bz,vx:s.bvx,vz:s.bvz,touchIn:r.dribbleTouch};const held=stepDribble(b,{...r,angle:heading},d);s.bx=b.x;s.bz=b.z;s.bvx=b.vx;s.bvz=b.vz;r.dribbleTouch=b.touchIn;s.by=s.bvy=0;if(!held){s.rc=-1;r.cool=.12;return}
    if((r.cool<=0&&r.plan.openness>.3&&Math.hypot(ax-s.bx,az-s.bz)<L.shootRange+(r.plan.openness>.7?1.5:0))||(s.oneTouch&&s.now>=(r.touchUntil||0))){const miss=(Math.random()-.5)*L.aim,aimX=ax-GOALS[r.target][1]/11*miss,aimZ=az+GOALS[r.target][0]/11*miss,ux=aimX-s.bx,uz=aimZ-s.bz,u=Math.hypot(ux,uz),power=L.shotSpeed+Math.random()*L.shotSpread;
     s.rc=-1;s.ignore={who:i,until:s.now+KICKER_GRACE};s.bvx=ux/u*power;s.bvz=uz/u*power;s.bvy=.8+Math.random()*1.6;s.curve=(Math.random()-.5)*.8;s.last=i;s.lock=.25;r.cool=1.2;r.kickAt=s.now-KICK_LEAD;r.kickType='strike';sfx.kick(.7);burst(s.bx,s.bz,7,'kick',ux/u,uz/u)}
    return}
