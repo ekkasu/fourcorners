@@ -1,10 +1,10 @@
-import {collideGoalBlocks,GOAL_WIDTH,GOAL_CLEAR_HEIGHT,PLAYER_LIMIT,confineBall} from '../src/court-layout.js';
+import {collideGoalBlocks,GOAL_WIDTH,GOAL_CLEAR_HEIGHT,PLAYER_LIMIT,confineBall,BALL_RADIUS} from '../src/court-layout.js';
 export const ARENAS=['uncompleted','accra','kumasi','village','school','london'];
 const HOMES=[[0,7],[0,-7],[7,0],[-7,0]],SIDES=[2,0,1,3];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export function createMatch(players,settings={}){
  settings=settings&&typeof settings==='object'?settings:{};
- return {tick:0,elapsed:0,pause:2,finished:false,winner:null,event:null,eventId:0,settings:{arena:ARENAS.includes(settings.arena)?settings.arena:'uncompleted',lives:[1,2,3,5].includes(settings.lives)?settings.lives:3},players:players.map((p,i)=>({id:p.id,name:p.name,side:SIDES[i],x:HOMES[i][0],z:HOMES[i][1],vx:0,vz:0,angle:Math.atan2(-HOMES[i][0],-HOMES[i][1]),lives:[1,2,3,5].includes(settings.lives)?settings.lives:3,goals:0,shots:0,stamina:1,connected:true,input:{},lastInput:0,lastRelease:0,charge:null,cooldown:0})),ball:{x:0,z:0,y:.24,vx:0,vz:0,vy:0,owner:null,last:null},timeLeft:180};
+ return {tick:0,elapsed:0,pause:2,finished:false,winner:null,event:null,eventId:0,settings:{arena:ARENAS.includes(settings.arena)?settings.arena:'uncompleted',lives:[1,2,3,5].includes(settings.lives)?settings.lives:3},players:players.map((p,i)=>({id:p.id,name:p.name,side:SIDES[i],x:HOMES[i][0],z:HOMES[i][1],vx:0,vz:0,angle:Math.atan2(-HOMES[i][0],-HOMES[i][1]),lives:[1,2,3,5].includes(settings.lives)?settings.lives:3,goals:0,shots:0,stamina:1,connected:true,input:{},lastInput:0,lastRelease:0,charge:null,cooldown:0})),ball:{x:0,z:0,y:BALL_RADIUS,vx:0,vz:0,vy:0,owner:null,last:null},timeLeft:180};
 }
 export function acceptInput(match,id,m){
  const p=match.players.find(p=>p.id===id);if(!p||!p.connected||!p.lives||match.finished)return;
@@ -13,7 +13,7 @@ export function acceptInput(match,id,m){
 function announce(m,event){m.event={...event,id:++m.eventId}}
 function finish(m,reason){const alive=m.players.filter(p=>p.connected&&p.lives>0),best=Math.max(0,...alive.map(p=>p.lives)),leaders=alive.filter(p=>p.lives===best);m.finished=true;m.winner=leaders.length===1?leaders[0].id:null;announce(m,{type:'finished',reason,winner:m.winner})}
 export function disconnectPlayer(m,id){const p=m.players.find(p=>p.id===id);if(p){p.connected=false;p.lives=0;if(m.ball.owner===id)m.ball.owner=null;if(m.players.filter(q=>q.connected&&q.lives>0).length<=1)finish(m,'disconnect')}}
-function kickoff(m){Object.assign(m.ball,{x:0,z:0,y:.24,vx:0,vz:0,vy:0,owner:null,last:null});m.players.forEach((p,i)=>{p.x=HOMES[i][0];p.z=HOMES[i][1];p.vx=p.vz=0;p.input={};p.charge=null;p.cooldown=.5})}
+function kickoff(m){Object.assign(m.ball,{x:0,z:0,y:BALL_RADIUS,vx:0,vz:0,vy:0,owner:null,last:null});m.players.forEach((p,i)=>{p.x=HOMES[i][0];p.z=HOMES[i][1];p.vx=p.vz=0;p.input={};p.charge=null;p.cooldown=.5})}
 export function stepMatch(m,dt=1/60){
  if(m.finished)return;m.tick++;m.elapsed+=dt;m.timeLeft=Math.max(0,180-m.elapsed);
  if(m.timeLeft===0){finish(m,'time');return}
@@ -28,8 +28,8 @@ export function stepMatch(m,dt=1/60){
   const released=(c.release||0)>p.lastRelease||(!c.shoot&&p.charge!==null);
   if(released){p.lastRelease=Math.max(p.lastRelease,c.release||0);if(b.owner===p.id){const charge=clamp((m.elapsed-(p.charge??m.elapsed))/.9,0,1),speed=10+11*charge;b.owner=null;b.vx=Math.sin(p.angle)*speed;b.vz=Math.cos(p.angle)*speed;b.vy=.6+charge*3;b.last=p.id;p.shots++;p.cooldown=.35;announce(m,{type:'kick',player:p.id})}else if(p.cooldown===0&&Math.hypot(b.x-p.x,b.z-p.z)<1.6&&b.y<.9){b.owner=p.id;b.last=p.id;p.cooldown=.4;announce(m,{type:'tackle',player:p.id})}p.charge=null}
  }
- if(b.owner){const p=m.players.find(p=>p.id===b.owner);if(!p?.lives){b.owner=null}else{b.x=p.x+Math.sin(p.angle)*.65;b.z=p.z+Math.cos(p.angle)*.65;b.y=.24;b.vx=b.vz=b.vy=0;const bounded=confineBall(b.x,b.z);b.x=bounded.x;b.z=bounded.z}}
- if(!b.owner){b.x+=b.vx*dt;b.z+=b.vz*dt;b.y=Math.max(.24,b.y+b.vy*dt);if(b.y>.24)b.vy-=9.8*dt;else b.vy=Math.abs(b.vy)>.8?-b.vy*.35:0;const drag=Math.exp(-.65*dt);b.vx*=drag;b.vz*=drag;
+ if(b.owner){const p=m.players.find(p=>p.id===b.owner);if(!p?.lives){b.owner=null}else{b.x=p.x+Math.sin(p.angle)*.65;b.z=p.z+Math.cos(p.angle)*.65;b.y=BALL_RADIUS;b.vx=b.vz=b.vy=0;const bounded=confineBall(b.x,b.z);b.x=bounded.x;b.z=bounded.z}}
+ if(!b.owner){b.x+=b.vx*dt;b.z+=b.vz*dt;b.y=Math.max(BALL_RADIUS,b.y+b.vy*dt);if(b.y>BALL_RADIUS)b.vy-=9.8*dt;else b.vy=Math.abs(b.vy)>.8?-b.vy*.35:0;const drag=Math.exp(-.65*dt);b.vx*=drag;b.vz*=drag;
   for(const p of m.players){if(!p.lives||!p.connected||p.cooldown>0)continue;if(b.y<.8&&Math.hypot(b.x-p.x,b.z-p.z)<.85){b.owner=p.id;b.last=p.id;break}}
  }
  // Match the rectangular block contacts used by the offline court.

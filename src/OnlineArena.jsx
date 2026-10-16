@@ -1,6 +1,6 @@
 import FrameBudget from './FrameBudget.jsx';
 import BlockGoal from './BlockGoal.jsx';
-import {broadcastView} from './court-layout.js';
+import {broadcastView,BALL_RADIUS} from './court-layout.js';
 import React,{Suspense,useRef} from 'react';
 import {Canvas,useFrame} from '@react-three/fiber';
 import {Billboard,Text} from '@react-three/drei';
@@ -19,7 +19,7 @@ function OnlineWorld({arena,network,commands,clientId,Player,roster,graphics}){
  return <><color attach="background" args={['#c9dbe6']}/><ambientLight intensity={.7}/><hemisphereLight args={['#dcefff','#a98c65',1]}/><directionalLight position={[16,27,10]} intensity={3} castShadow={graphics.shadows} shadow-mapSize={[graphics.shadowSize,graphics.shadowSize]} shadow-camera-left={-25} shadow-camera-right={25} shadow-camera-top={25} shadow-camera-bottom={-25}/><Suspense fallback={null}><ArenaEnvironment arena={arena} detailed={graphics.props}/></Suspense>
  {GOALS.map(([x,z],side)=><group key={side} position={[x,0,z]} rotation={[0,side%2?Math.PI/2:0,0]}><BlockGoal active={roster.some(p=>p.side===side)}/></group>)}
  {roster.map((p,i)=><group key={p.id} ref={g=>{groups.current[p.id]=g}}><Suspense fallback={null}><Player label="" kit={COLORS[i]} modelPath="/models/footballer-blue.glb" animationFps={graphics.animationFps} animated/></Suspense><Billboard position={[0,2.4,0]}><Text fontSize={.23} color={p.id===clientId?'#ffe58b':'#ffffff'} anchorX="center" outlineWidth={.03} outlineColor="#171b19">{p.id===clientId?'YOU · ':''}{p.name}</Text></Billboard></group>)}
- <mesh ref={ball} position={[0,.24,0]} castShadow><sphereGeometry args={[.24,16,12]}/><meshStandardMaterial color="#fff6da" roughness={.65} wireframe={false}/></mesh>
+ <mesh ref={ball} position={[0,BALL_RADIUS,0]} castShadow><sphereGeometry args={[BALL_RADIUS,16,12]}/><meshStandardMaterial color="#fff6da" roughness={.65} wireframe={false}/></mesh>
  <mesh rotation={[-Math.PI/2,0,0]} position={[0,.02,0]}><ringGeometry args={[3.2,3.24,48]}/><meshBasicMaterial color="#eee1c2"/></mesh>
  </>
 }

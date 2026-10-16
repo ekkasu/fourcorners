@@ -1,12 +1,14 @@
 // Keep the wall strip reachable, including the diagonal distance in court corners.
 export const PLAYER_LIMIT=11.55,BALL_LIMIT=11.85;
 export const GOAL_WIDTH=2.4;
+// Standard football: about 22 cm in diameter beside the 1.8 m players.
+export const BALL_RADIUS=.11;
 export const BLOCK_WIDTH=.45,BLOCK_HEIGHT=.6,BLOCK_DEPTH=.4;
 export const BLOCK_CENTERS=[-(GOAL_WIDTH+BLOCK_WIDTH)/2,(GOAL_WIDTH+BLOCK_WIDTH)/2];
 export const GOAL_CLEAR_HEIGHT=1.55;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 // Goal width is the clear gap between the two blocks. There is no crossbar.
-export function collideGoalBlocks(x,z,y,vx,vz,radius=.24){
+export function collideGoalBlocks(x,z,y,vx,vz,radius=BALL_RADIUS){
  if(y-radius>BLOCK_HEIGHT)return {x,z,vx,vz,impact:0};
  let impact=0;
  for(const center of BLOCK_CENTERS){
