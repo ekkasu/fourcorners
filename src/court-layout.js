@@ -20,10 +20,10 @@ export function collideGoalBlocks(x,z,y,vx,vz,radius=.24){
 }
 // Raised sideline camera, following the ball rather than orbiting the player.
 export function broadcastView(ballX=0,ballZ=0,aspect=16/9,playerX=ballX,playerZ=ballZ,mobile=false){
- const portrait=clamp((1.3-aspect)/.8,0,1),x=clamp((ballX+playerX)*.25,-6,6),z=clamp((ballZ+playerZ)*.25,-5.5,5.5),height=(mobile?8:12)+6*portrait,distance=(mobile?11:18)+5*portrait,fov=(mobile?54:50)+14*portrait,tangent=Math.tan(fov*Math.PI/360);
+ const portrait=clamp((1.3-aspect)/.8,0,1),x=clamp((ballX+playerX)*.5,-9.5,9.5),z=clamp((ballZ+playerZ)*.5,-9,9),height=(mobile?6:8.5)+6*portrait,distance=(mobile?8.5:12.5)+5*portrait,fov=(mobile?48:46)+14*portrait,tangent=Math.tan(fov*Math.PI/360);
  // Fit both the ball and the controlled player with room for heads and the HUD.
  let zoom=1;
- for(let attempt=0;attempt<16;attempt++){
+ for(let attempt=0;attempt<40;attempt++){
   const cy=height*zoom,cz=z+distance*zoom,dy=cy-.4,dz=cz-(z-1),length=Math.hypot(dy,dz),sin=dy/length,cos=dz/length;
   let fits=true;
   for(const [px,pz]of [[ballX,ballZ],[playerX,playerZ]])for(const py of [0,2.4]){

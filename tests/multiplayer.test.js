@@ -42,7 +42,7 @@ test('default sideline camera follows play and widens for portrait screens',asyn
  const standard=broadcastView(0,0,16/9),portrait=broadcastView(0,0,9/16),edge=broadcastView(100,-100,16/9);
  assert.ok(standard.position[2]>standard.position[1]);
  assert.ok(portrait.position[1]>standard.position[1]);assert.ok(portrait.fov>standard.fov);
- assert.equal(edge.position[0],6);assert.equal(edge.lookAt[0],6);
+ assert.equal(edge.position[0],9.5);assert.equal(edge.lookAt[0],9.5);
 });
 
 test('a stopped ball is recoverable and stays dribbleable in every corner',async()=>{
