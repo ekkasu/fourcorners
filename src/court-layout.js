@@ -1,3 +1,5 @@
+// Keep the wall strip reachable, including the diagonal distance in court corners.
+export const PLAYER_LIMIT=11.55,BALL_LIMIT=11.85;
 export const GOAL_WIDTH=2.4;
 export const BLOCK_WIDTH=.45,BLOCK_HEIGHT=.6,BLOCK_DEPTH=.4;
 export const BLOCK_CENTERS=[-(GOAL_WIDTH+BLOCK_WIDTH)/2,(GOAL_WIDTH+BLOCK_WIDTH)/2];
@@ -17,7 +19,25 @@ export function collideGoalBlocks(x,z,y,vx,vz,radius=.24){
  return {x,z,vx,vz,impact};
 }
 // Raised sideline camera, following the ball rather than orbiting the player.
-export function broadcastView(ballX=0,ballZ=0,aspect=16/9){
- const portrait=clamp((1.3-aspect)/.8,0,1),x=clamp(ballX*.6,-6,6),z=clamp(ballZ*.22,-2,2);
- return {position:[x,12+6*portrait,z+18+5*portrait],lookAt:[x,.4,z-1],fov:50+14*portrait};
+export function broadcastView(ballX=0,ballZ=0,aspect=16/9,playerX=ballX,playerZ=ballZ){
+ const portrait=clamp((1.3-aspect)/.8,0,1),x=clamp((ballX+playerX)*.25,-6,6),z=clamp((ballZ+playerZ)*.25,-5.5,5.5),height=12+6*portrait,distance=18+5*portrait,fov=50+14*portrait,tangent=Math.tan(fov*Math.PI/360);
+ // Fit both the ball and the controlled player with room for heads and the HUD.
+ let zoom=1;
+ for(let attempt=0;attempt<16;attempt++){
+  const cy=height*zoom,cz=z+distance*zoom,dy=cy-.4,dz=cz-(z-1),length=Math.hypot(dy,dz),sin=dy/length,cos=dz/length;
+  let fits=true;
+  for(const [px,pz]of [[ballX,ballZ],[playerX,playerZ]])for(const py of [0,2.4]){
+   const depth=(cy-py)*sin+(cz-pz)*cos,up=(py-cy)*cos-(pz-cz)*sin;
+   if(depth<=0||Math.abs((px-x)/(depth*tangent*aspect))>.82||Math.abs(up/(depth*tangent))>.82)fits=false;
+  }
+  if(fits)break;zoom+=.1;
+ }
+ return {position:[x,height*zoom,z+distance*zoom],lookAt:[x,.4,z-1],fov};
+}
+
+export function confineBall(x,z,vx=0,vz=0,restitution=.6){
+ const boundedX=clamp(x,-BALL_LIMIT,BALL_LIMIT),boundedZ=clamp(z,-BALL_LIMIT,BALL_LIMIT);
+ if(x!==boundedX&&vx*Math.sign(x)>0)vx*=-restitution;
+ if(z!==boundedZ&&vz*Math.sign(z)>0)vz*=-restitution;
+ return {x:boundedX,z:boundedZ,vx,vz};
 }
