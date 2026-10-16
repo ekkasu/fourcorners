@@ -11,7 +11,7 @@ import {fileURLToPath} from 'node:url';
 // Locally, `npm run dev` serves the game and proxies /ws here.
 const PORT=Number(process.env.PORT)||3001;
 const DIST=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../dist');
-const TYPES={'.html':'text/html; charset=utf-8','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.glb':'model/gltf-binary','.hdr':'application/octet-stream','.md':'text/plain; charset=utf-8','.ico':'image/x-icon'};
+const TYPES={'.mp3':'audio/mpeg','.html':'text/html; charset=utf-8','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.glb':'model/gltf-binary','.hdr':'application/octet-stream','.md':'text/plain; charset=utf-8','.ico':'image/x-icon'};
 const COMPRESS=new Set(['.html','.js','.css','.json','.svg','.glb','.hdr','.md']);
 const files=new Map();
 async function load(file){if(files.has(file))return files.get(file);const body=await readFile(file),ext=path.extname(file),entry={body,gzip:COMPRESS.has(ext)?gzipSync(body,{level:9}):null,type:TYPES[ext]||'application/octet-stream'};files.set(file,entry);return entry}
