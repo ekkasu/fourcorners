@@ -20,8 +20,8 @@ export const isLocked=(kind,id,level)=>requiredLevel(kind,id)>level;
 export function unlocksBetween(from,to,options){const out=[];for(const[kind,list]of Object.entries(options))for(const[id,label]of list){const need=requiredLevel(kind,id);if(need>from&&need<=to)out.push({kind,id,label,need})}return out.sort((a,b)=>a.need-b.need)}
 
 // Arena tour: each arena opens after a win on the one before it, or at a level.
-export const ARENA_ORDER=['accra','kumasi','village','school','london'];
-const ARENA_LEVELS=[1,3,5,7,9];
+export const ARENA_ORDER=['uncompleted','accra','kumasi','village','school','london'];
+const ARENA_LEVELS=[1,1,3,5,7,9];
 export function arenaRequirement(id){const i=ARENA_ORDER.indexOf(id);return i<=0?null:{previous:ARENA_ORDER[i-1],level:ARENA_LEVELS[i]}}
 export function arenaUnlocked(id,progress){const req=arenaRequirement(id);if(!req)return true;return levelInfo(progress.xp).level>=req.level||(progress.arenaWins?.[req.previous]||0)>0}
 
