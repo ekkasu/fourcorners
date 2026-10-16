@@ -35,9 +35,18 @@ export function broadcastView(ballX=0,ballZ=0,aspect=16/9,playerX=ballX,playerZ=
  return {position:[x,height*zoom,z+distance*zoom],lookAt:[x,.4,z-1],fov};
 }
 
+// Rounded physical corners let the ball roll along the wall instead of wedging
+// between two independent collision planes. No timers, respawns or touch resets.
+export const CORNER_RADIUS=1.4;
 export function confineBall(x,z,vx=0,vz=0,restitution=.6){
- const boundedX=clamp(x,-BALL_LIMIT,BALL_LIMIT),boundedZ=clamp(z,-BALL_LIMIT,BALL_LIMIT);
- if(x!==boundedX&&vx*Math.sign(x)>0)vx*=-restitution;
- if(z!==boundedZ&&vz*Math.sign(z)>0)vz*=-restitution;
+ let boundedX=clamp(x,-BALL_LIMIT,BALL_LIMIT),boundedZ=clamp(z,-BALL_LIMIT,BALL_LIMIT);
+ const center=BALL_LIMIT-CORNER_RADIUS;
+ if(Math.abs(boundedX)>center&&Math.abs(boundedZ)>center){
+  const cx=Math.sign(boundedX)*center,cz=Math.sign(boundedZ)*center,dx=boundedX-cx,dz=boundedZ-cz,distance=Math.hypot(dx,dz);
+  if(distance>=CORNER_RADIUS){const nx=dx/distance,nz=dz/distance;boundedX=cx+nx*CORNER_RADIUS;boundedZ=cz+nz*CORNER_RADIUS;const outward=vx*nx+vz*nz;if(outward>0){vx-=(1+restitution)*outward*nx;vz-=(1+restitution)*outward*nz}}
+ }else{
+  if(x!==boundedX&&vx*Math.sign(x)>0)vx*=-restitution;
+  if(z!==boundedZ&&vz*Math.sign(z)>0)vz*=-restitution;
+ }
  return {x:boundedX,z:boundedZ,vx,vz};
 }
