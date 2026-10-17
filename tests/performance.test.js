@@ -1,15 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {initialQuality,lowerQuality,GRAPHICS} from '../src/graphics.js';
+import {initialQuality,lowerQuality,GRAPHICS,graphicsPreset} from '../src/graphics.js';
 import {navigateScreens} from '../src/navigation.js';
 test('data-saving and low-memory devices avoid expensive graphics',()=>{
- for(const device of [{memory:2,cores:8},{memory:16,cores:16,saveData:true},{memory:8,cores:4,coarse:true}]){
+ for(const device of [{memory:2,cores:8},{memory:16,cores:16,saveData:true}]){
   const preset=GRAPHICS[initialQuality(device)];
   assert.equal(preset.shadows,false);assert.equal(preset.effects,false);assert.ok(preset.dpr<=1);
  }
 });
 test('powerful touch devices do not enable desktop post-processing',()=>{
- assert.equal(GRAPHICS[initialQuality({memory:16,cores:12,coarse:true})].effects,false);
+ assert.equal(graphicsPreset(initialQuality({memory:16,cores:12,coarse:true}),true).effects,false);
 });
 test('missing hardware APIs still yield a usable graphics preset',()=>{
  assert.equal(initialQuality(),'balanced');
@@ -32,13 +32,14 @@ test('the childhood court is available immediately without changing existing are
  assert.deepEqual(arenaRequirement('kumasi'),{previous:'accra',level:3});
 });
 
-test('all touch devices start without the crowd, shadows or decorative props',()=>{
- for(const device of [{memory:16,cores:12},{memory:undefined,cores:undefined},{memory:8,cores:8}]){
-  const preset=GRAPHICS[initialQuality({...device,coarse:true})];
-  assert.equal(preset.crowd,false);assert.equal(preset.shadows,false);
-  assert.equal(preset.props,false);assert.equal(preset.effects,false);
-  assert.ok(preset.dpr<=.85);
+test('normal phones retain crisp resolution, arena detail and modest shadows',()=>{
+ for(const device of [{memory:16,cores:12},{memory:undefined,cores:undefined},{memory:4,cores:4}]){
+  const preset=graphicsPreset(initialQuality({...device,coarse:true}),true);
+  assert.equal(preset.crowd,false);assert.equal(preset.shadows,true);
+  assert.equal(preset.props,true);assert.equal(preset.effects,false);
+  assert.ok(preset.dpr>=1.5);assert.equal(preset.antialias,true);
  }
+ assert.ok(GRAPHICS.low.dpr>=1,'adaptive quality must never go below native resolution');
 });
 
 test('mobile camera makes nearby players larger and still fits separated play',async()=>{

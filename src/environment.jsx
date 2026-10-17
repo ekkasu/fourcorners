@@ -164,7 +164,7 @@ function StreetEnvironment({arena,detailed=true}){
   for(let i=0;i<9;i++){const z=-26+i*6.5;list.push(make(-22-(i%2)*2,z,Math.PI/2,4+(i%3),low?2.6:3.2+(i%3)*.65),make(22+(i%2)*2,z,-Math.PI/2,4+(i%3),low?2.6:3+(i%3)*.75))}
   [-25,-18,-11,11,18,25].forEach((x,i)=>list.push(make(x,-27,0,5,low?2.6:3.4+(i%2)*.8)));[-25,-16,16,25].forEach(x=>list.push(make(x,27,Math.PI,6,low?2.6:3)));return list},[arena.id,arena.type]);
  return <>
-  {detailed&&<SkyLight files={TEX+'sky_1k.hdr'} background environmentIntensity={1.1}/>}
+  <SkyLight files={TEX+'sky_1k.hdr'} background environmentIntensity={1.1}/>
   <mesh rotation={[-Math.PI/2,0,0]} position={[0,-.02,0]} receiveShadow><planeGeometry args={[200,200]}/><meshStandardMaterial {...ground} color={theme.ground} roughness={1}/></mesh>
   <mesh rotation={[-Math.PI/2,0,0]} receiveShadow><planeGeometry args={[24.5,24.5]}/><meshStandardMaterial {...court} color={theme.court} roughness={.95} normalScale={[.8,.8]}/></mesh>
   {theme.grass&&MOW_STRIPES.map((x,i)=><mesh key={i} rotation={[-Math.PI/2,0,0]} position={[x,.006,0]} receiveShadow><planeGeometry args={[24.5/8,24.5]}/><meshStandardMaterial color="#0b2a0b" transparent opacity={.2} depthWrite={false}/></mesh>)}
@@ -219,7 +219,7 @@ function UncompletedBuilding({detailed}){
  const columns=useMemo(()=>[-18,18].flatMap(x=>[-18,-10,-2,6,14,18].map(z=>[x,z])).concat([-16,-8,0,8,16].map(x=>[x,-18])),[]);
  const blocks=useMemo(()=>{const result=[];for(const[cx,cz]of[[-15,-15],[15,16]])for(let row=0;row<3;row++)for(let k=0;k<5-row;k++)result.push([cx+(k-2)*.8+(row%2)*.4,.2+row*.4,cz]);return result},[]);
  return <>
-  {detailed&&<SkyLight files={TEX+'sky_1k.hdr'} background environmentIntensity={.9}/>}
+  <SkyLight files={TEX+'sky_1k.hdr'} background environmentIntensity={.9}/>
   <mesh rotation={[-Math.PI/2,0,0]} position={[0,-.3,0]} receiveShadow><planeGeometry args={[200,200]}/><meshStandardMaterial {...earth} color="#ad9879" roughness={1}/></mesh>
   <mesh position={[0,-.15,0]} receiveShadow><boxGeometry args={[38,.3,42]}/><meshStandardMaterial {...slab} color="#8d8f82" roughness={1}/></mesh>
   <mesh rotation={[-Math.PI/2,0,0]} position={[0,.008,0]} receiveShadow><planeGeometry args={[24.5,24.5]}/><meshStandardMaterial {...slab} color="#6b6e64" roughness={1}/></mesh>
