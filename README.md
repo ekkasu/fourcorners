@@ -164,4 +164,6 @@ to Firebase email logins or safely matched to new users by username alone. A
 separate verified ownership migration is needed before transferring historical
 points. This deployment does not delete the old database or import unverified scores.
 
-No Analytics SDK is initialized; account sign-in does not require Analytics.
+The `jwks-rsa` override keeps Firebase Admin compatible with Vercel runtimes
+that disable CommonJS `require()` of ESM. Tests run with that behavior disabled
+to catch startup regressions. No Analytics SDK is initialized.
