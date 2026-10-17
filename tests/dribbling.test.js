@@ -30,7 +30,7 @@ test('carrying the ball through every opposing goal counts without shooting',()=
   const m=createMatch([{id:'a'},{id:'b'},{id:'c'},{id:'d'}]);m.pause=0;
   const [x,z]=[[0,-10.6],[10.6,0],[],[-10.6,0]][side],p=m.players[0];
   Object.assign(p,{x,z,angle:Math.atan2(x,z)});
-  Object.assign(m.ball,{x:x*1.06,z:z*1.06,owner:'a',last:'a'});
+  Object.assign(m.ball,{x:x*1.045,z:z*1.045,owner:'a',last:'a'});
   acceptInput(m,'a',{x:Math.sign(x),z:Math.sign(z)});
   for(let n=0;n<30&&!m.event;n++)stepMatch(m);
   assert.equal(m.event?.type,'goal');assert.equal(m.event.scorer,'a');assert.equal(p.shots,0);

@@ -5,9 +5,9 @@ import * as THREE from 'three';
 import {GOAL_WIDTH,PLAYER_LIMIT,confineBall} from './court-layout.js';
 const RIVAL_GOALS=[0,3,1],GOALS=[[0,-11],[11,0],[0,11],[-11,0]];
 export const DIFFICULTY={
- easy:{label:'Easy',carry:2.8,press:3.1,rush:4,guard:2.6,pressRange:1.8,tackleWin:.22,save:.2,shootRange:5,aim:4.5,recover:2,shootDelay:1.5,shotSpeed:8,shotSpread:2,controlGrace:1.1,tackleDelay:.8},
- normal:{label:'Normal',carry:3.6,press:4,rush:5,guard:3.1,pressRange:2.8,tackleWin:.38,save:.35,shootRange:6.5,aim:3.6,recover:1.6,shootDelay:1,shotSpeed:10,shotSpread:2.5,controlGrace:.8,tackleDelay:.6},
- hard:{label:'Hard',carry:5.4,press:5.6,rush:7.2,guard:4,pressRange:5,tackleWin:.7,save:.6,shootRange:9,aim:2,recover:1,shootDelay:.6,shotSpeed:12,shotSpread:4,controlGrace:.4,tackleDelay:.4}};
+ easy:{label:'Easy',carry:4.5,press:5.2,rush:6.5,guard:4.2,pressRange:1.8,tackleWin:.22,save:.2,shootRange:5,aim:4.5,recover:2,shootDelay:1.5,shotSpeed:8,shotSpread:2,controlGrace:1.1,tackleDelay:.8},
+ normal:{label:'Normal',carry:4.9,press:5.8,rush:7.2,guard:4.8,pressRange:2.8,tackleWin:.38,save:.35,shootRange:6.5,aim:3.6,recover:1.6,shootDelay:1,shotSpeed:10,shotSpread:2.5,controlGrace:.8,tackleDelay:.6},
+ hard:{label:'Hard',carry:5.6,press:6.5,rush:8,guard:5.2,pressRange:5,tackleWin:.7,save:.6,shootRange:9,aim:2,recover:1,shootDelay:.6,shotSpeed:12,shotSpread:4,controlGrace:.4,tackleDelay:.4}};
 // Each rival has a style that scales the difficulty tuning. guardDist scales how far it stands off its goal.
 export const RIVAL_STYLES=[
  {name:'PRESSER',pressRange:1.7,press:1.1,tackleWin:1.15,save:.85},
@@ -48,7 +48,7 @@ export function createRivalStepper({sfx,burst,touchBall,KICK_LEAD,KICKER_GRACE,O
   else if(alive){const position=rivalOffBallPosition(s,i,chaser);tx=position.x;tz=position.z;r.role=position.role;speed=position.role==='press'?(position.urgent?L.rush:L.press):L.guard}
   if(alive&&loose&&Math.max(Math.abs(s.bx),Math.abs(s.bz))>10.3&&i!==chaser){const awayX=r.x-s.bx,awayZ=r.z-s.bz,away=Math.hypot(awayX,awayZ);if(away<2.5){const nx=away>.01?awayX/away:-Math.sign(s.bx||1),nz=away>.01?awayZ/away:-Math.sign(s.bz||1);tx=s.bx+nx*3;tz=s.bz+nz*3;speed=L.guard}}
   const dx=tx-r.x,dz=tz-r.z,dist=Math.hypot(dx,dz),want=dist>.25?Math.min(speed,dist*3):0;
-  r.vx=THREE.MathUtils.damp(r.vx,dist?dx/dist*want:0,6,d);r.vz=THREE.MathUtils.damp(r.vz,dist?dz/dist*want:0,6,d);
+  r.vx=THREE.MathUtils.damp(r.vx,dist?dx/dist*want:0,10,d);r.vz=THREE.MathUtils.damp(r.vz,dist?dz/dist*want:0,10,d);
   r.x=THREE.MathUtils.clamp(r.x+r.vx*d,-PLAYER_LIMIT,PLAYER_LIMIT);r.z=THREE.MathUtils.clamp(r.z+r.vz*d,-PLAYER_LIMIT,PLAYER_LIMIT);
   if(alive&&loose&&s.rc<0&&!s.attached&&i===chaser&&r.cool<=0&&s.by<.5&&ballSpeed<=7&&canTouchBall(s,i)&&Math.hypot(s.bx-r.x,s.bz-r.z)<.9){s.attached=false;s.rc=i;r.target=pickRivalTarget(s,i);s.last=i;s.lock=.6;s.stealCool=.9;r.cool=L.shootDelay;s.controlUntil=s.now+L.controlGrace;r.touchUntil=s.now+.25+Math.random()*.35;touchBall(s,i);return}
   for(const o of [s,...s.rivals]){if(o===r||(o!==s&&!s.alive[RIVAL_GOALS[s.rivals.indexOf(o)]]))continue;const ox=r.x-o.x,oz=r.z-o.z,od=Math.hypot(ox,oz);if(od>0&&od<.9){r.x+=ox/od*(.9-od);r.z+=oz/od*(.9-od)}}

@@ -4,13 +4,15 @@ button.fullscreen-button{display:inline-flex;align-items:center;justify-content:
 .fullscreen-button.compact{width:44px;padding:6px}
 .fullscreen-button.compact>span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
 .fullscreen-error{position:absolute;right:0;bottom:calc(100% + 8px);width:230px;background:var(--surface);border:1px solid var(--accent);padding:12px;color:var(--text);font-size:12px;line-height:1.5;z-index:60}
-.fc-launch-fullscreen{position:absolute;right:max(20px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom))}
+.fc-launch-fullscreen{position:absolute;top:max(16px,env(safe-area-inset-top));right:max(20px,env(safe-area-inset-right));z-index:3}
+.front-door.fc-launch{padding-top:max(80px,6svh)}
+.fc-launch-fullscreen .fullscreen-error{top:calc(100% + 8px);bottom:auto}
 .fc-footer-actions,.game-topbar-actions,.ml-top-actions{display:flex;align-items:center;gap:14px}
 .fc-menu-footer .fullscreen-button{padding:8px 12px;color:var(--text);border:1px solid #85c9bf66;background:#101c29d9}
 .ml-top .fullscreen-button,.game-topbar .fullscreen-button{font-size:11px;padding:8px 12px}
 .replay-tag .skip-replay{pointer-events:auto;min-height:44px;padding:10px 16px;background:var(--accent);color:var(--background);border:1px solid var(--accent);font-weight:800;font-size:12px;letter-spacing:.06em}
 .replay-tag .skip-replay:focus-visible,.fullscreen-button:focus-visible{outline:2px solid var(--text);outline-offset:3px}
-@media(max-width:560px){.fc-menu-footer{flex-wrap:wrap;padding:8px 0;gap:8px}.fc-footer-actions{gap:10px}.fc-launch-fullscreen{bottom:70px}.ml-top-actions,.game-topbar-actions{gap:8px}.ml-top .fullscreen-button,.game-topbar .fullscreen-button{width:44px;padding:6px}.ml-top .fullscreen-button>span,.game-topbar .fullscreen-button>span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}}
+@media(max-width:560px){.fc-menu-footer{flex-wrap:wrap;padding:8px 0;gap:8px}.fc-footer-actions{gap:10px}.ml-top-actions,.game-topbar-actions{gap:8px}.ml-top .fullscreen-button,.game-topbar .fullscreen-button{width:44px;padding:6px}.ml-top .fullscreen-button>span,.game-topbar .fullscreen-button>span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}}
 .controls .fullscreen-error,.ml-top .fullscreen-error,.game-topbar .fullscreen-error{top:calc(100% + 8px);bottom:auto}
 
 .fc-menu-fullscreen{position:absolute;top:104px;right:clamp(24px,4vw,60px);z-index:2}

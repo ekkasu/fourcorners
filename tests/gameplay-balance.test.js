@@ -86,3 +86,13 @@ test('Easy carriers wait before shooting and use slower shots',t=>{
  for(let n=0;n<90&&s.rc===1;n++){s.now+=1/60;step(s,1/60)}
  assert.equal(s.rc,-1);assert.ok(Math.hypot(s.bvx,s.bvz)<=10);
 });
+
+test('rivals accelerate promptly while chasing at 30, 60 and 120 fps',()=>{
+ for(const fps of [30,60,120]){
+  const s=state();s.x=s.bx=0;s.z=s.bz=8;
+  Object.assign(s.rivals[0],{x:0,z:0});
+  for(let n=0;n<fps*.4;n++){s.now+=1/fps;step(s,1/fps)}
+  assert.ok(Math.hypot(s.rivals[0].vx,s.rivals[0].vz)>4.8,`${fps} fps: chase should reach running pace promptly`);
+  assert.ok(s.rivals[0].z>1.3,'rival makes meaningful ground toward the ball');
+ }
+});

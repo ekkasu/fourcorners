@@ -1,5 +1,5 @@
 import {stepDribble} from '../src/dribbling.js';
-import {collideGoalBlocks,GOAL_WIDTH,GOAL_CLEAR_HEIGHT,PLAYER_LIMIT,confineBall,BALL_RADIUS} from '../src/court-layout.js';
+import {crossedGoal,collideGoalBlocks,GOAL_WIDTH,GOAL_CLEAR_HEIGHT,PLAYER_LIMIT,confineBall,BALL_RADIUS} from '../src/court-layout.js';
 export const ARENAS=['uncompleted','accra','kumasi','village','school','london'];
 const HOMES=[[0,7],[0,-7],[7,0],[-7,0]],SIDES=[2,0,1,3];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -19,7 +19,7 @@ export function stepMatch(m,dt=1/60){
  if(m.finished)return;m.tick++;m.elapsed+=dt;m.timeLeft=Math.max(0,180-m.elapsed);
  if(m.timeLeft===0){finish(m,'time');return}
  if(m.pause>0){m.pause=Math.max(0,m.pause-dt);return}
- const b=m.ball;
+ const b=m.ball,previousBall={x:b.x,z:b.z,y:b.y};
  for(const p of m.players){
   if(!p.lives||!p.connected)continue;if(m.elapsed-p.lastInput>.35){p.input={};p.vx=p.vz=0}
   const c=p.input,len=Math.max(1,Math.hypot(c.x||0,c.z||0)),run=c.sprint&&p.stamina>.05&&len>0,speed=run?7.5:5;
@@ -35,7 +35,7 @@ export function stepMatch(m,dt=1/60){
  }
  // Match the rectangular block contacts used by the offline court.
  for(const [gx,gz]of [[0,-11],[11,0],[0,11],[-11,0]]){const ox=gx/11,oz=gz/11,rx=b.x-gx,rz=b.z-gz;const contact=collideGoalBlocks(-rx*oz+rz*ox,rx*ox+rz*oz,b.y,-b.vx*oz+b.vz*ox,b.vx*ox+b.vz*oz);b.x=gx+contact.z*ox-contact.x*oz;b.z=gz+contact.z*oz+contact.x*ox;b.vx=contact.vz*ox-contact.vx*oz;b.vz=contact.vz*oz+contact.vx*ox}
- const side=b.z<-11.3&&Math.abs(b.x)<GOAL_WIDTH/2-.12?0:b.x>11.3&&Math.abs(b.z)<GOAL_WIDTH/2-.12?1:b.z>11.3&&Math.abs(b.x)<GOAL_WIDTH/2-.12?2:b.x<-11.3&&Math.abs(b.z)<GOAL_WIDTH/2-.12?3:-1;
+ const side=[0,1,2,3].findIndex(side=>crossedGoal(previousBall,b,side));
  const victim=m.players.find(p=>p.side===side&&p.lives>0&&p.connected);
  if(victim&&b.y<GOAL_CLEAR_HEIGHT){victim.lives--;const scorer=m.players.find(p=>p.id===b.last);if(scorer&&scorer!==victim)scorer.goals++;announce(m,{type:'goal',victim:victim.id,scorer:scorer?.id||null,lives:victim.lives});if(m.players.filter(p=>p.lives>0&&p.connected).length<=1)finish(m,'elimination');else{m.pause=1.5;kickoff(m)}return}
  const bounded=confineBall(b.x,b.z,b.vx,b.vz,.75);Object.assign(b,bounded);
