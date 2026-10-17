@@ -1,11 +1,11 @@
 // Keep the wall strip reachable, including the diagonal distance in court corners.
 export const PLAYER_LIMIT=11.55,BALL_LIMIT=11.85;
-export const GOAL_WIDTH=2.4;
+export const GOAL_WIDTH=1.5;
 // Standard football: about 22 cm in diameter beside the 1.8 m players.
 export const BALL_RADIUS=.11;
-export const BLOCK_WIDTH=.45,BLOCK_HEIGHT=.6,BLOCK_DEPTH=.4;
+export const BLOCK_WIDTH=.4,BLOCK_HEIGHT=.4,BLOCK_DEPTH=.2;
 export const BLOCK_CENTERS=[-(GOAL_WIDTH+BLOCK_WIDTH)/2,(GOAL_WIDTH+BLOCK_WIDTH)/2];
-export const GOAL_CLEAR_HEIGHT=1.55;
+export const GOAL_CLEAR_HEIGHT=BLOCK_HEIGHT;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 // Goal width is the clear gap between the two blocks. There is no crossbar.
 export function collideGoalBlocks(x,z,y,vx,vz,radius=BALL_RADIUS){
@@ -51,4 +51,16 @@ export function confineBall(x,z,vx=0,vz=0,restitution=.6){
   if(z!==boundedZ&&vz*Math.sign(z)>0)vz*=-restitution;
  }
  return {x:boundedX,z:boundedZ,vx,vz};
+}
+
+// Score at the actual crossing, never just because a ball later rolls behind
+// a goal. Both the full diameter and height must fit the visible opening.
+export function crossedGoal(previous,current,side){
+ const [ox,oz]=[[0,-1],[1,0],[0,1],[-1,0]][side];
+ const plane=11+BLOCK_DEPTH/2+BALL_RADIUS;
+ const a=previous.x*ox+previous.z*oz,b=current.x*ox+current.z*oz;
+ if(a>plane||b<=plane||b<=a)return false;
+ const t=(plane-a)/(b-a),x=previous.x+(current.x-previous.x)*t,z=previous.z+(current.z-previous.z)*t;
+ const y=previous.y+(current.y-previous.y)*t;
+ return Math.abs(-x*oz+z*ox)+BALL_RADIUS<GOAL_WIDTH/2&&y+BALL_RADIUS<=GOAL_CLEAR_HEIGHT;
 }
