@@ -1,4 +1,3 @@
-import {steerPlayer} from '../src/steering.js';
 import {stepDribble} from '../src/dribbling.js';
 import {crossedGoal,collideGoalBlocks,GOAL_WIDTH,GOAL_CLEAR_HEIGHT,PLAYER_LIMIT,confineBall,BALL_RADIUS} from '../src/court-layout.js';
 export const ARENAS=['uncompleted','accra','kumasi','village','school','london'];
@@ -6,7 +5,7 @@ const HOMES=[[0,7],[0,-7],[7,0],[-7,0]],SIDES=[2,0,1,3];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export function createMatch(players,settings={}){
  settings=settings&&typeof settings==='object'?settings:{};
- return {tick:0,elapsed:0,pause:2,finished:false,winner:null,event:null,eventId:0,settings:{arena:ARENAS.includes(settings.arena)?settings.arena:'uncompleted',lives:[1,2,3,5].includes(settings.lives)?settings.lives:3},players:players.map((p,i)=>({id:p.id,name:p.name,side:SIDES[i],x:HOMES[i][0],z:HOMES[i][1],vx:0,vz:0,angle:Math.atan2(-HOMES[i][0],-HOMES[i][1]),lives:[1,2,3,5].includes(settings.lives)?settings.lives:3,goals:0,shots:0,stamina:1,connected:true,input:{},lastInput:0,lastRelease:0,charge:null,cooldown:0})),ball:{x:0,z:0,y:BALL_RADIUS,vx:0,vz:0,vy:0,owner:null,last:null},timeLeft:180};
+ return {tick:0,elapsed:0,pause:2,finished:false,winner:null,event:null,eventId:0,settings:{arena:ARENAS.includes(settings.arena)?settings.arena:'uncompleted',lives:[1,2,3,5].includes(settings.lives)?settings.lives:3},players:players.map((p,i)=>({id:p.id,name:p.name,accountId:p.accountId||null,side:SIDES[i],x:HOMES[i][0],z:HOMES[i][1],vx:0,vz:0,angle:Math.atan2(-HOMES[i][0],-HOMES[i][1]),lives:[1,2,3,5].includes(settings.lives)?settings.lives:3,goals:0,shots:0,stamina:1,connected:true,input:{},lastInput:0,lastRelease:0,charge:null,cooldown:0})),ball:{x:0,z:0,y:BALL_RADIUS,vx:0,vz:0,vy:0,owner:null,last:null},timeLeft:180};
 }
 export function acceptInput(match,id,m){
  const p=match.players.find(p=>p.id===id);if(!p||!p.connected||!p.lives||match.finished)return;
@@ -24,7 +23,7 @@ export function stepMatch(m,dt=1/60){
  for(const p of m.players){
   if(!p.lives||!p.connected)continue;if(m.elapsed-p.lastInput>.35){p.input={};p.vx=p.vz=0}
   const c=p.input,len=Math.max(1,Math.hypot(c.x||0,c.z||0)),run=c.sprint&&p.stamina>.05&&len>0,speed=run?7.5:5;
-  p.stamina=clamp(p.stamina+(run?-.3:.18)*dt,0,1);steerPlayer(p,c.x||0,c.z||0,speed,dt);
+  p.stamina=clamp(p.stamina+(run?-.3:.18)*dt,0,1);const response=1-Math.exp(-12*dt);p.vx+=((c.x||0)/len*speed-p.vx)*response;p.vz+=((c.z||0)/len*speed-p.vz)*response;
   p.x=clamp(p.x+p.vx*dt,-PLAYER_LIMIT,PLAYER_LIMIT);p.z=clamp(p.z+p.vz*dt,-PLAYER_LIMIT,PLAYER_LIMIT);if(Math.hypot(p.vx,p.vz)>.1)p.angle=Math.atan2(p.vx,p.vz);p.cooldown=Math.max(0,p.cooldown-dt);
   if(c.shoot&&p.charge===null)p.charge=m.elapsed;
   const released=(c.release||0)>p.lastRelease||(!c.shoot&&p.charge!==null);
@@ -42,4 +41,4 @@ export function stepMatch(m,dt=1/60){
  const bounded=confineBall(b.x,b.z,b.vx,b.vz,.75);Object.assign(b,bounded);
 
 }
-export function snapshot(m){return {type:'snapshot',tick:m.tick,timeLeft:m.timeLeft,pause:m.pause,finished:m.finished,winner:m.winner,event:m.event,ball:m.ball,players:m.players.map(({input,lastInput,lastRelease,charge,cooldown,...p})=>p)}}
+export function snapshot(m){return {type:'snapshot',tick:m.tick,timeLeft:m.timeLeft,pause:m.pause,finished:m.finished,winner:m.winner,event:m.event,ball:m.ball,players:m.players.map(({input,lastInput,lastRelease,charge,cooldown,accountId,...p})=>p)}}

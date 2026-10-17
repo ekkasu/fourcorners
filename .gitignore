@@ -9,3 +9,9 @@ assets-src/mixamo/
 *.log
 .DS_Store
 Thumbs.db
+
+# Local account database (contains private password hashes and sessions)
+server/data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
