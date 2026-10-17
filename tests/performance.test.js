@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {initialQuality,lowerQuality,GRAPHICS,graphicsPreset} from '../src/graphics.js';
+import {initialQuality,lowerQuality,GRAPHICS,graphicsPreset,renderDpr} from '../src/graphics.js';
 import {navigateScreens} from '../src/navigation.js';
 test('data-saving and low-memory devices avoid expensive graphics',()=>{
  for(const device of [{memory:2,cores:8},{memory:16,cores:16,saveData:true}]){
@@ -53,4 +53,9 @@ test('mobile camera makes nearby players larger and still fits separated play',a
   const c=cameraFor(broadcastView(bx,bz,aspect,px,pz,true),aspect);
   for(const[x,z]of[[bx,bz],[px,pz]])for(const y of [0,2.4]){const p=new Vector3(x,y,z).project(c);assert.ok(Math.abs(p.x)<=.83&&Math.abs(p.y)<=.83,`mobile framing at ${aspect}: ${p.x},${p.y}`)}
  }
+});
+
+test('browser zoom never forces the canvas below native CSS resolution',()=>{
+ assert.equal(renderDpr(.637,1.5),1);assert.equal(renderDpr(.8,1),1);
+ assert.equal(renderDpr(3,1.5),1.5);assert.equal(renderDpr(2,1.75),1.75);
 });

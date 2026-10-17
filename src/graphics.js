@@ -10,6 +10,7 @@ export function initialQuality({memory=8,cores=4,coarse=false,saveData=false}={}
  if(memory<=4)return 'low';
  return memory>=8&&cores>=8?'high':'balanced';
 }
+export function renderDpr(nativeDpr,limit){return Math.max(1,Math.min(Number(nativeDpr)||1,limit))}
 export function lowerQuality(tier){return tier==='high'?'balanced':'low'}
 export function graphicsPreset(tier,mobile=false){return {...GRAPHICS[tier],...(mobile?{crowd:false,effects:false,shadowSize:Math.min(1024,GRAPHICS[tier].shadowSize)}:{})}}
 export function useGraphics(){
