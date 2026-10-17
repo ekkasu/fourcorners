@@ -12,3 +12,8 @@ test('Vercel rewrite preserves nested room, match and public profile API routes'
  assert.equal(apiRequestUrl({url:'/api/handler',query:{__route:'matches/finish'}}),'/api/matches/finish');
  assert.equal(apiRequestUrl({url:'/api/players/uid-a'}),'/api/players/uid-a');
 });
+
+test('Vercel rewrite retains incoming message headers and restores the request URL',async()=>{
+ const req=Object.assign(Object.create({headers:{host:'game.example',origin:'https://evil.example'}}),{url:'/api/handler?__route=rooms%2Fcreate'}),res=response();
+ await handler(req,res);assert.equal(res.code,403);assert.equal(req.url,'/api/handler?__route=rooms%2Fcreate');
+});
