@@ -25,8 +25,14 @@
     }
   ],
   "functions": {
-    "api/[...path].js": {
+    "api/handler.js": {
       "maxDuration": 60
     }
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/handler?__route=:path*"
+    }
+  ]
 }

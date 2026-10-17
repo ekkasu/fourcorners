@@ -29,7 +29,7 @@ hashed files) and the Firebase API on `$PORT` (default 3001). `/healthz` answers
 
 ### Deploy to Vercel
 
-`vercel.json` builds the frontend and deploys `api/[...path].js` as a Node 24 function.
+`vercel.json` builds the frontend and deploys `api/handler.js` as a Node 24 function.
 Firebase hosts authentication and all persistent data. Private-room state and controls
 sync through Realtime Database; no separate WebSocket server or Render service is needed.
 See Firebase setup below for the server credential and security rules.
@@ -104,7 +104,7 @@ The default Uncompleted Building court uses the exposed sandcrete walls, empty o
 
 ## Firebase accounts and Vercel API
 
-The current account backend runs as a Vercel Node function at `api/[...path].js`.
+The current account backend runs as a Vercel Node function at `api/handler.js`.
 Firebase Authentication handles email/password sign-in, persistent browser sessions,
 and password-reset emails. Firestore stores public player profiles, match tickets,
 match totals, duplicate-result records and rate limits. The client uses Firebase
