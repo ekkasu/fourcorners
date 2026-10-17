@@ -1,10 +1,10 @@
 import {canTouchBall,touchBall} from './one-touch.js';
-export const TACKLE_WINDOW=.16,TACKLE_COOLDOWN=.65;
+export const TACKLE_WINDOW=.24,TACKLE_COOLDOWN=.55;
 
 export function withinTackleReach(player,ball){
  const dx=ball.x-player.x,dz=ball.z-player.z,distance=Math.hypot(dx,dz);
  // Close contact is forgiving; longer reaches require facing the ball.
- return ball.y<.6&&distance<1.2&&(distance<.45||(dx*Math.sin(player.angle)+dz*Math.cos(player.angle))/distance>-.15);
+ return ball.y<.6&&distance<1.3&&(distance<.45||(dx*Math.sin(player.angle)+dz*Math.cos(player.angle))/distance>0);
 }
 
 // A standing challenge never changes position or movement velocity. The player
@@ -17,7 +17,7 @@ export function stepPlayerTackle(s,c,dt,{frozen=false,penalty=false,touchWindow=
    s.cancelShot=c.tackleShootAt=c.shootAt;
    if(canTouchBall(s,'player')&&s.tackleCool<=0){
     s.tackleWindow=TACKLE_WINDOW;s.tackleCool=TACKLE_COOLDOWN;
-    s.kickAt=s.now;s.kickType='strike';started=true;
+    s.kickAt=s.now;s.kickType='standingTackle';started=true;
    }
   }
  }

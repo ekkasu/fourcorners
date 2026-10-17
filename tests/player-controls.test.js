@@ -58,7 +58,7 @@ test('a defender cannot reach backwards or spam challenges through their cooldow
  const m=match();m.ball.z=-1;
  acceptInput(m,'a',{shoot:true,seq:1});stepMatch(m);assert.equal(m.ball.owner,null);
  acceptInput(m,'a',{shoot:false,release:1,seq:2});
- for(let n=0;n<12;n++)stepMatch(m);
+ for(let n=0;n<18;n++)stepMatch(m);
  m.ball.z=1;
  acceptInput(m,'a',{shoot:true,seq:3});stepMatch(m);assert.equal(m.ball.owner,null);
 });

@@ -18,7 +18,7 @@ test('a nearby standing tackle takes possession without moving past the ball',()
  assert.deepEqual([s.x,s.z,s.vx,s.vz],[2,7,0,0]);
  assert.equal(s.rc,-1);assert.equal(s.attached,true);assert.equal(s.stats.tackles,1);
  assert.equal(c.tackleShootAt,10);assert.equal(s.cancelShot,10);
- assert.equal(s.kickType,'strike','use a standing animation rather than a slide');
+ assert.equal(s.kickType,'standingTackle','use the planted challenge, not a shot or slide');
  assert.ok(s.controlUntil>s.now);
 });
 test('repeated presses respect the tackle cooldown and cannot win distant or airborne balls',()=>{

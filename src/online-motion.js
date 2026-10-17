@@ -76,7 +76,7 @@ export class OnlineMotion{
   const scene=this.sample(this.timeline);
   const oldLocal=scene.players.find(p=>p.id===this.clientId);
   if(this.predicted){
-   const local={...this.predicted,x:clamp(this.predicted.x+this.offset.x,-PLAYER_LIMIT,PLAYER_LIMIT),z:clamp(this.predicted.z+this.offset.z,-PLAYER_LIMIT,PLAYER_LIMIT)};
+   const local={...this.predicted,defending:input.control&&state.ball.owner!==this.clientId,x:clamp(this.predicted.x+this.offset.x,-PLAYER_LIMIT,PLAYER_LIMIT),z:clamp(this.predicted.z+this.offset.z,-PLAYER_LIMIT,PLAYER_LIMIT)};
    scene.players=scene.players.map(p=>p.id===this.clientId?local:p);
    if(oldLocal&&scene.ball.owner===this.clientId&&state.ball.owner===this.clientId&&!state.pause){
     scene.ball.x=clamp(scene.ball.x+local.x-oldLocal.x,-BALL_LIMIT,BALL_LIMIT);
@@ -97,6 +97,6 @@ export class OnlineMotion{
    players=latest.players.map(p=>extrapolate(p,seconds,PLAYER_LIMIT));ball=extrapolate(latest.ball,seconds,BALL_LIMIT);
    ball.y=Math.max(BALL_RADIUS,latest.ball.y+(latest.ball.vy||0)*seconds);
   }
-  return {...latest,players,ball};
+  return {...latest,players,ball,renderTime:time/1000};
  }
 }

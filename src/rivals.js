@@ -62,7 +62,7 @@ export function createRivalStepper({sfx,burst,touchBall,KICK_LEAD,KICKER_GRACE,O
   if(loose&&ballSpeed>7&&Math.random()>L.save){r.cool=.5;return}
   if(!loose&&s.now<(s.controlUntil||0))return;
   const take=loose?ballSpeed<=7&&s.by<.5:Math.random()<L.tackleWin;
-  if(take){if(!loose){sfx.tackle();r.kickAt=s.now;r.kickType='tackle'}if(s.rc>=0)s.rivals[s.rc].cool=1;s.attached=false;s.rc=i;r.target=pickRivalTarget(s,i);s.last=i;s.lock=.6;s.stealCool=.9;r.cool=L.shootDelay;s.controlUntil=s.now+L.controlGrace;r.touchUntil=s.now+.25+Math.random()*.35;touchBall(s,i);return}
+  if(take){if(!loose){sfx.tackle();r.kickAt=s.now;r.kickType='standingTackle'}if(s.rc>=0)s.rivals[s.rc].cool=1;s.attached=false;s.rc=i;r.target=pickRivalTarget(s,i);s.last=i;s.lock=.6;s.stealCool=.9;r.cool=L.shootDelay;s.controlUntil=s.now+L.controlGrace;r.touchUntil=s.now+.25+Math.random()*.35;touchBall(s,i);return}
   if(!loose){r.cool=L.tackleDelay;return}
   const cx=s.bx-gx,cz=s.bz-gz,c=Math.hypot(cx,cz)||1,spread=(Math.random()-.5)*.9,ux=cx/c-cz/c*spread,uz=cz/c+cx/c*spread,u=Math.hypot(ux,uz);
   r.kickAt=s.now-KICK_LEAD;r.kickType='strike';if(!loose)sfx.tackle();else sfx.save();if(s.rc>=0)s.rivals[s.rc].cool=1;s.attached=false;s.rc=-1;burst(s.bx,s.bz,5,'kick',ux/u,uz/u);s.bvx=ux/u*9;s.bvz=uz/u*9;s.bvy=2.5;s.lock=.6;s.last=i;s.ignore={who:i,until:s.now+KICKER_GRACE};r.cool=L.recover;touchBall(s,i);

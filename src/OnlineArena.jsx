@@ -14,7 +14,7 @@ const PATCHES=Array.from({length:12},(_,i)=>{const y=1-(i+.5)/6,r=Math.sqrt(1-y*
 const GOALS=[[0,-11],[11,0],[0,11],[-11,0]];
 function OnlineWorld({arena,connection,commands,clientId,Player,roster,graphics,paused}){
  const groups=useRef({}),ball=useRef(),lookAt=useRef(new THREE.Vector3()),cameraReady=useRef(false);
- useFrame(({camera,clock,size},delta)=>{
+ useFrame(({camera,size},delta)=>{
   const c=commands.current,blocked=paused||document.hidden;
   const s=connection.current?.motion?.frame({x:blocked?0:(c.right?1:0)-(c.left?1:0)+(c.stickX||0),z:blocked?0:(c.down?1:0)-(c.up?1:0)+(c.stickY||0),sprint:!blocked&&!!c.sprint,control:!blocked&&!!c.control,aim:c.aimAngle,shoot:!blocked&&!!c.shoot,release:Math.floor(c.shootRelease||0)},delta);
   if(!s)return;const blend=1-Math.exp(-12*Math.min(delta,.1));
@@ -22,7 +22,7 @@ function OnlineWorld({arena,connection,commands,clientId,Player,roster,graphics,
    const g=groups.current[p.id];if(!g)continue;
    g.visible=p.connected&&p.lives>0;g.position.set(p.x,0,p.z);
    g.rotation.y+=angleDelta(g.rotation.y,p.angle)*blend;
-   Object.assign(g.userData,{clock:clock.elapsedTime,velocityX:p.vx,velocityZ:p.vz,dribbling:s.ball.owner===p.id});
+   Object.assign(g.userData,{clock:s.renderTime,velocityX:p.vx,velocityZ:p.vz,dribbling:s.ball.owner===p.id,defending:p.defending,kickAt:p.kickAt,kickType:p.kickType});
    if(p.id===clientId){c.hasBall=s.ball.owner===clientId;c.stamina=p.stamina;c.timeLeft=s.timeLeft}
   }
   if(ball.current){ball.current.position.set(s.ball.x,s.ball.y,s.ball.z);ball.current.rotation.x+=s.ball.vz*delta;ball.current.rotation.z-=s.ball.vx*delta}

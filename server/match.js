@@ -1,5 +1,6 @@
 import {withinTackleReach,TACKLE_WINDOW,TACKLE_COOLDOWN} from '../src/tackling.js';
 import {stepDribble} from '../src/dribbling.js';
+import {ballInterception} from '../src/interception.js';
 import {movementInput,stepPlayerMovement} from '../src/online-movement.js';
 import {crossedGoal,collideGoalBlocks,GOAL_CLEAR_HEIGHT,confineBall,BALL_RADIUS} from '../src/court-layout.js';
 export const ARENAS=['uncompleted','accra','kumasi','village','school','london'];
@@ -24,16 +25,16 @@ export function stepMatch(m,dt=1/60){
  if(m.finished)return;m.tick++;m.elapsed+=dt;m.timeLeft=Math.max(0,180-m.elapsed);
  if(m.timeLeft===0){finish(m,'time');return}
  if(m.pause>0){m.pause=Math.max(0,m.pause-dt);return}
- const b=m.ball,previousBall={x:b.x,z:b.z,y:b.y};
+ const b=m.ball,previousBall={x:b.x,z:b.z,y:b.y},previousPlayers=new Map(m.players.map(p=>[p.id,{x:p.x,z:p.z}]));
  for(const p of m.players){
   if(!p.lives||!p.connected)continue;if(m.elapsed-p.lastInput>.35){p.input={};p.vx=p.vz=0}
-  const c=p.input;stepPlayerMovement(p,c,dt,{ball:b,hasBall:b.owner===p.id});p.inputTicks=(p.inputTicks||0)+1;p.cooldown=Math.max(0,p.cooldown-dt);
+  const c=p.input;p.defending=!!c.control&&b.owner!==p.id;stepPlayerMovement(p,c,dt,{ball:b,hasBall:b.owner===p.id});p.inputTicks=(p.inputTicks||0)+1;p.cooldown=Math.max(0,p.cooldown-dt);
   // A short tap may begin and end between host ticks; the release counter preserves it.
   const pressed=(c.shoot||((c.release||0)>p.lastRelease))&&!p.shootHeld;
   if(pressed){
    p.cancelShot=b.owner!==p.id;
    if(!p.cancelShot)p.charge=m.elapsed;
-   else if(p.cooldown===0){p.tackleWindow=TACKLE_WINDOW;p.cooldown=TACKLE_COOLDOWN}
+   else if(p.cooldown===0){p.tackleWindow=TACKLE_WINDOW;p.cooldown=TACKLE_COOLDOWN;p.kickAt=m.tick/60;p.kickType='standingTackle'}
   }
   if(p.tackleWindow>0){
    if(b.owner!==p.id&&withinTackleReach(p,b)){
@@ -48,7 +49,7 @@ export function stepMatch(m,dt=1/60){
    p.lastRelease=Math.max(p.lastRelease,c.release||0);
    if(b.owner===p.id&&!p.cancelShot){
     const charge=clamp((m.elapsed-(p.charge??m.elapsed))/.9,0,1),speed=10+11*charge,aim=c.aim??p.angle;
-    b.owner=null;b.vx=Math.sin(aim)*speed;b.vz=Math.cos(aim)*speed;b.vy=.6+charge*3;b.last=p.id;p.shots++;p.cooldown=.35;announce(m,{type:'kick',player:p.id});
+    b.owner=null;b.vx=Math.sin(aim)*speed;b.vz=Math.cos(aim)*speed;b.vy=.6+charge*3;b.last=p.id;p.shots++;p.cooldown=.35;p.kickAt=m.tick/60;p.kickType='strike';announce(m,{type:'kick',player:p.id});
    }
    p.charge=null;p.cancelShot=false;
   }
@@ -56,7 +57,18 @@ export function stepMatch(m,dt=1/60){
  }
  if(b.owner){const p=m.players.find(p=>p.id===b.owner);if(!p?.lives){b.owner=null}else{if(!stepDribble(b,{...p,control:p.input.control},dt)){b.owner=null;p.cooldown=.12}b.y=BALL_RADIUS;b.vy=0}}
  if(!b.owner){b.x+=b.vx*dt;b.z+=b.vz*dt;b.y=Math.max(BALL_RADIUS,b.y+b.vy*dt);if(b.y>BALL_RADIUS)b.vy-=9.8*dt;else b.vy=Math.abs(b.vy)>.8?-b.vy*.35:0;const drag=Math.exp(-.65*dt);b.vx*=drag;b.vz*=drag;
-  for(const p of m.players){if(!p.lives||!p.connected||p.cooldown>0)continue;if(b.y<.8&&Math.hypot(b.x-p.x,b.z-p.z)<.85){b.owner=p.id;b.last=p.id;b.touchIn=0;break}}
+  const contacts=[];
+  for(const p of m.players){
+   if(!p.lives||!p.connected||(p.cooldown>0&&!p.tackleWindow))continue;
+   const hit=ballInterception(p,b,previousBall,{control:!!p.input.control,previousPlayer:previousPlayers.get(p.id)});
+   if(hit)contacts.push({p,hit});
+  }
+  contacts.sort((a,b)=>a.hit.t-b.hit.t);
+  if(contacts.length){
+   const {p,hit}=contacts[0];Object.assign(b,{x:hit.x,z:hit.z,vx:hit.vx,vz:hit.vz,last:p.id});
+   if(hit.kind==='trap'){b.owner=p.id;b.touchIn=.1;b.y=BALL_RADIUS;b.vy=0;p.defending=false}
+   else{b.vy=.3;p.cooldown=.18;p.kickAt=m.tick/60;p.kickType='standingTackle';announce(m,{type:'block',player:p.id})}
+  }
  }
  // Match the rectangular block contacts used by the offline court.
  for(const [gx,gz]of [[0,-11],[11,0],[0,11],[-11,0]]){const ox=gx/11,oz=gz/11,rx=b.x-gx,rz=b.z-gz;const contact=collideGoalBlocks(-rx*oz+rz*ox,rx*ox+rz*oz,b.y,-b.vx*oz+b.vz*ox,b.vx*ox+b.vz*oz);b.x=gx+contact.z*ox-contact.x*oz;b.z=gz+contact.z*oz+contact.x*ox;b.vx=contact.vz*ox-contact.vx*oz;b.vz=contact.vz*oz+contact.vx*ox}
@@ -66,4 +78,4 @@ export function stepMatch(m,dt=1/60){
  const bounded=confineBall(b.x,b.z,b.vx,b.vz,.75);Object.assign(b,bounded);
 
 }
-export function snapshot(m){return {type:'snapshot',tick:m.tick,timeLeft:m.timeLeft,pause:m.pause,finished:m.finished,winner:m.winner,event:m.event,ball:m.ball,players:m.players.map(({input,lastInput,lastRelease,charge,cooldown,shootHeld,tackleWindow,cancelShot,accountId,...p})=>p)}}
+export function snapshot(m){return {type:'snapshot',tick:m.tick,timeLeft:m.timeLeft,pause:m.pause,finished:m.finished,winner:m.winner,event:m.event,ball:m.ball,players:m.players.map(({input,lastInput,lastRelease,charge,cooldown,shootHeld,tackleWindow,cancelShot,accountId,moveX,moveZ,...p})=>p)}}
