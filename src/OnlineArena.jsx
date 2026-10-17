@@ -1,4 +1,5 @@
 import FrameBudget from './FrameBudget.jsx';
+import RenderLifecycle from './RenderLifecycle.jsx';
 import BlockGoal from './BlockGoal.jsx';
 import {angleDelta} from './online-motion.js';
 import {broadcastView,BALL_RADIUS} from './court-layout.js';
@@ -7,7 +8,7 @@ import React,{Suspense,useRef} from 'react';
 import {Canvas,useFrame} from '@react-three/fiber';
 import {Billboard,Text} from '@react-three/drei';
 import {ArenaEnvironment} from './environment.jsx';
-import {useGraphics,usePageVisible,renderDpr} from './graphics.js';
+import {useGraphics,renderDpr} from './graphics.js';
 const COLORS=['#f2cd48','#df5044','#438ee7','#43b983'];
 const PATCHES=Array.from({length:12},(_,i)=>{const y=1-(i+.5)/6,r=Math.sqrt(1-y*y),a=i*2.399963229728653,v=new THREE.Vector3(Math.cos(a)*r,y,Math.sin(a)*r);return {position:v.clone().multiplyScalar(BALL_RADIUS*1.006).toArray(),quaternion:new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1),v)}});
 const GOALS=[[0,-11],[11,0],[0,11],[-11,0]];
@@ -38,4 +39,4 @@ function OnlineWorld({arena,connection,commands,clientId,Player,roster,graphics,
  <mesh rotation={[-Math.PI/2,0,0]} position={[0,.02,0]}><ringGeometry args={[3.2,3.24,48]}/><meshBasicMaterial color="#eee1c2"/></mesh>
  </>
 }
-export default function OnlineArena(props){const graphics=useGraphics(),visible=usePageVisible();return <Canvas fallback={<div className="scene-error">This device needs WebGL to play.</div>} frameloop={visible?'always':'never'} shadows={graphics.shadows} dpr={renderDpr(devicePixelRatio,graphics.dpr)} camera={{position:[0,12,18],fov:50}} gl={{antialias:true,powerPreference:'high-performance'}}><FrameBudget onDecline={graphics.decline}/><OnlineWorld {...props} graphics={graphics}/></Canvas>}
+export default function OnlineArena(props){const graphics=useGraphics();return <Canvas fallback={<div className="scene-error">This device needs WebGL to play.</div>} frameloop="always" shadows={graphics.shadows} dpr={renderDpr(devicePixelRatio,graphics.dpr)} camera={{position:[0,12,18],fov:50}} gl={{antialias:true,powerPreference:'high-performance'}}><RenderLifecycle/><FrameBudget onDecline={graphics.decline}/><OnlineWorld {...props} graphics={graphics}/></Canvas>}

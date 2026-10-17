@@ -11,6 +11,7 @@ import {stepPlayerTackle} from './tackling.js';
 import FullscreenButton from './FullscreenButton.jsx';
 import {consumeReplaySkip} from './replay-controls.js';
 import FrameBudget from './FrameBudget.jsx';
+import RenderLifecycle from './RenderLifecycle.jsx';
 import {canTouchBall,touchBall} from './one-touch.js';
 import {DIFFICULTY,RIVAL_STYLES,createRivalStepper} from './rivals.js';
 import BlockGoal from './BlockGoal.jsx';
@@ -393,7 +394,7 @@ class SceneBoundary extends React.Component{
  retry=()=>{forgetFailedAsset(this.state.error);this.setState(v=>({error:null,attempt:v.attempt+1}))};
  render(){if(!this.state.error)return <React.Fragment key={this.state.attempt}>{this.props.children}</React.Fragment>;
   return <div className="scene-error" role="alert"><strong>Couldn't load the game</strong><p>Check your connection, then try again.</p><div className="button-row"><button className="btn small" onClick={this.retry}>Try again</button>{this.state.attempt>0&&<button className="btn small alt" onClick={()=>location.reload()}>Reload page</button>}</div></div>}}
-function Arena3D({arena,playing=false,paused=false,skin,mode,onEvent,highQuality=true,commands,onlinePlayers,shooting,onGoal,onGameOver,round,difficulty,lives,jersey,gender,outfit,back,celebration,oneTouch}){const graphics=useGraphics(),visible=usePageVisible();return <SceneBoundary><Canvas frameloop={visible?(playing?'always':'demand'):'never'} shadows={graphics.shadows} camera={{position:[0,8.5,17],fov:66}} dpr={renderDpr(devicePixelRatio,graphics.dpr)} gl={{antialias:true,powerPreference:'high-performance'}}>{playing&&<FrameBudget onDecline={graphics.decline}/>}<Scene graphics={graphics} arena={arena} playing={playing} paused={paused} skin={skin} mode={mode} onEvent={onEvent} commands={commands} onlinePlayers={onlinePlayers} shooting={shooting} onGoal={onGoal} onGameOver={onGameOver} round={round} difficulty={difficulty} lives={lives} jersey={jersey} gender={gender} outfit={outfit} back={back} celebration={celebration} oneTouch={oneTouch}/>{highQuality&&graphics.effects&&<Suspense fallback={null}><GraphicsEffects/></Suspense>}</Canvas></SceneBoundary>}
+function Arena3D({arena,playing=false,paused=false,skin,mode,onEvent,highQuality=true,commands,onlinePlayers,shooting,onGoal,onGameOver,round,difficulty,lives,jersey,gender,outfit,back,celebration,oneTouch}){const graphics=useGraphics();return <SceneBoundary><Canvas frameloop={playing?'always':'demand'} shadows={graphics.shadows} camera={{position:[0,8.5,17],fov:66}} dpr={renderDpr(devicePixelRatio,graphics.dpr)} gl={{antialias:true,powerPreference:'high-performance'}}>{playing&&<FrameBudget onDecline={graphics.decline}/>}<Scene graphics={graphics} arena={arena} playing={playing} paused={paused} skin={skin} mode={mode} onEvent={onEvent} commands={commands} onlinePlayers={onlinePlayers} shooting={shooting} onGoal={onGoal} onGameOver={onGameOver} round={round} difficulty={difficulty} lives={lives} jersey={jersey} gender={gender} outfit={outfit} back={back} celebration={celebration} oneTouch={oneTouch}/><RenderLifecycle mode={playing?'always':'demand'}>{revision=>highQuality&&graphics.effects&&<Suspense key={revision} fallback={null}><GraphicsEffects/></Suspense>}</RenderLifecycle></Canvas></SceneBoundary>}
 // Phone and tablet controls drawn over the court: a drag joystick on the left, SHOOT (hold to power) and SPRINT on the right.
 const JOYSTICK_RADIUS=48;
 function enterLandscape(){const el=document.documentElement,request=el.requestFullscreen||el.webkitRequestFullscreen;if(!request)return;Promise.resolve(request.call(el)).then(()=>screen.orientation?.lock?.('landscape')).catch(()=>{})}
@@ -430,11 +431,11 @@ function TouchControls({commands,online=false}){
 function CelebrationPreview({target,previewKey}){const start=useRef(false);useEffect(()=>{if(previewKey)start.current=true},[previewKey]);
  useFrame(({clock})=>{const g=target.current;if(!g)return;g.userData.clock=clock.elapsedTime;if(start.current){g.userData.celebrateUntil=clock.elapsedTime+2.6;start.current=false}});return null}
 function PlayerShowcase({jersey,gender,skin,interactive=false,outfit,back,celebration,previewKey=0}){
- const kit=playerKit(gender,jersey,outfit,back),pose=useRef(),graphics=useGraphics(),visible=usePageVisible();
- return <SceneBoundary><Canvas frameloop={visible?'always':'never'} className="hero-player-canvas" shadows={graphics.shadows} camera={{position:[0,1.05,3.4],fov:34}} dpr={renderDpr(devicePixelRatio,graphics.dpr)} gl={{alpha:true,antialias:true}} onCreated={({camera})=>camera.lookAt(0,.92,0)}>
+ const kit=playerKit(gender,jersey,outfit,back),pose=useRef(),graphics=useGraphics();
+ return <SceneBoundary><Canvas frameloop="always" className="hero-player-canvas" shadows={graphics.shadows} camera={{position:[0,1.05,3.4],fov:34}} dpr={renderDpr(devicePixelRatio,graphics.dpr)} gl={{alpha:true,antialias:true}} onCreated={({camera})=>camera.lookAt(0,.92,0)}>
   <ambientLight intensity={.8}/><hemisphereLight args={['#e5f2ff','#a6a2a0',.9]}/><directionalLight position={[2,4,3]} intensity={2}/><directionalLight position={[-3,2,-3]} intensity={1.2}/>
   <Suspense fallback={null}><group ref={pose} rotation={[0,interactive?0:-.35,0]}><RiggedPlayer label="" gender={gender} skin={skin} {...kit} back={back} celebration={celebration}/></group></Suspense>{interactive&&<CelebrationPreview target={pose} previewKey={previewKey}/>}
-  {interactive&&<>{graphics.shadows&&<ContactShadows frames={1} resolution={256} position={[0,0,0]} opacity={.55} scale={3.2} blur={2.4} far={1.6}/>}<OrbitControls target={[0,.92,0]} enablePan={false} enableZoom={false} minPolarAngle={Math.PI/2.15} maxPolarAngle={Math.PI/2.15} autoRotate autoRotateSpeed={.9}/></>}
+  <RenderLifecycle>{revision=>interactive&&graphics.shadows&&<ContactShadows key={revision} frames={1} resolution={256} position={[0,0,0]} opacity={.55} scale={3.2} blur={2.4} far={1.6}/>}</RenderLifecycle>{interactive&&<OrbitControls target={[0,.92,0]} enablePan={false} enableZoom={false} minPolarAngle={Math.PI/2.15} maxPolarAngle={Math.PI/2.15} autoRotate autoRotateSpeed={.9}/>}
  </Canvas></SceneBoundary>
 }
 // Locker options. Skin tones apply to the footballer model.
