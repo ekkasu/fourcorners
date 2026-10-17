@@ -9,5 +9,5 @@ class BootBoundary extends React.Component{
  state={failed:false};static getDerivedStateFromError(){return {failed:true}}
  render(){return this.state.failed?<div className="boot-loading" role="alert"><strong>CONNECTION INTERRUPTED</strong><p>Reload to finish loading the game.</p><button className="btn" onClick={()=>location.reload()}>RETRY</button></div>:this.props.children}
 }
-function Boot(){const [started,setStarted]=useState(()=>!!roomCodeFromUrl(location.href));return <BootBoundary>{started?<Suspense fallback={<div className="boot-loading" role="status"><strong>ENTERING THE STREET</strong><span className="boot-spinner"/><p>Preparing your game…</p></div>}><GameApp/></Suspense>:<FrontDoor entered={false} onEnter={()=>setStarted(true)}/>}</BootBoundary>}
+function Boot(){const [started,setStarted]=useState(()=>!!roomCodeFromUrl(location.href));return <BootBoundary>{started?<Suspense fallback={<div className="boot-loading" role="status"><strong>ENTERING THE STREET</strong><span className="boot-spinner"/><p>Preparing your game…</p></div>}><GameApp initialScreen={started.screen||'home'} initialAuthMode={started.authMode||'signup'}/></Suspense>:<FrontDoor entered={false} onEnter={()=>setStarted(true)} onAuth={authMode=>setStarted({screen:'profile',authMode})}/>}</BootBoundary>}
 createRoot(document.getElementById('root')).render(<Boot/>);

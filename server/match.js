@@ -5,7 +5,7 @@ const HOMES=[[0,7],[0,-7],[7,0],[-7,0]],SIDES=[2,0,1,3];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export function createMatch(players,settings={}){
  settings=settings&&typeof settings==='object'?settings:{};
- return {tick:0,elapsed:0,pause:2,finished:false,winner:null,event:null,eventId:0,settings:{arena:ARENAS.includes(settings.arena)?settings.arena:'uncompleted',lives:[1,2,3,5].includes(settings.lives)?settings.lives:3},players:players.map((p,i)=>({id:p.id,name:p.name,side:SIDES[i],x:HOMES[i][0],z:HOMES[i][1],vx:0,vz:0,angle:Math.atan2(-HOMES[i][0],-HOMES[i][1]),lives:[1,2,3,5].includes(settings.lives)?settings.lives:3,goals:0,shots:0,stamina:1,connected:true,input:{},lastInput:0,lastRelease:0,charge:null,cooldown:0})),ball:{x:0,z:0,y:BALL_RADIUS,vx:0,vz:0,vy:0,owner:null,last:null},timeLeft:180};
+ return {tick:0,elapsed:0,pause:2,finished:false,winner:null,event:null,eventId:0,settings:{arena:ARENAS.includes(settings.arena)?settings.arena:'uncompleted',lives:[1,2,3,5].includes(settings.lives)?settings.lives:3},players:players.map((p,i)=>({id:p.id,name:p.name,accountId:p.accountId||null,side:SIDES[i],x:HOMES[i][0],z:HOMES[i][1],vx:0,vz:0,angle:Math.atan2(-HOMES[i][0],-HOMES[i][1]),lives:[1,2,3,5].includes(settings.lives)?settings.lives:3,goals:0,shots:0,stamina:1,connected:true,input:{},lastInput:0,lastRelease:0,charge:null,cooldown:0})),ball:{x:0,z:0,y:BALL_RADIUS,vx:0,vz:0,vy:0,owner:null,last:null},timeLeft:180};
 }
 export function acceptInput(match,id,m){
  const p=match.players.find(p=>p.id===id);if(!p||!p.connected||!p.lives||match.finished)return;
@@ -41,4 +41,4 @@ export function stepMatch(m,dt=1/60){
  const bounded=confineBall(b.x,b.z,b.vx,b.vz,.75);Object.assign(b,bounded);
 
 }
-export function snapshot(m){return {type:'snapshot',tick:m.tick,timeLeft:m.timeLeft,pause:m.pause,finished:m.finished,winner:m.winner,event:m.event,ball:m.ball,players:m.players.map(({input,lastInput,lastRelease,charge,cooldown,...p})=>p)}}
+export function snapshot(m){return {type:'snapshot',tick:m.tick,timeLeft:m.timeLeft,pause:m.pause,finished:m.finished,winner:m.winner,event:m.event,ball:m.ball,players:m.players.map(({input,lastInput,lastRelease,charge,cooldown,accountId,...p})=>p)}}

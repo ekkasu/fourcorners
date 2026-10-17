@@ -11,3 +11,16 @@
 @media(max-width:650px){.fc-menu .fc-cover{background-position:63% center}.fc-menu .fc-vignette{background:linear-gradient(90deg,#0b1520ee,#0b152080 70%,#0b152035),linear-gradient(0deg,#0b0a0cf5,transparent 60%)}.fc-menu-body{width:90%;padding:104px 24px 100px}.fc-menu .fc-brand h1{font-size:66px}.fc-menu .fc-brand p{font-size:9px}.fc-profile{top:18px;right:20px;padding:7px 10px}.fc-profile-icon{width:29px;height:30px;font-size:19px}.fc-main-menu button{font-size:28px;min-height:44px}.fc-menu-kicker{margin-top:24px}.fc-court-note{display:none}.fc-menu-footer>span:nth-child(2){display:none}.fc-menu-footer{left:26px;right:26px}.fc-launch-brand .fc-brand h1{font-size:clamp(70px,17vw,100px)}.fc-start{font-size:30px}.fc-start i{width:24px}.fc-start-block p{font-size:8px}.fc-launch{padding-top:7svh}.fc-menu-description{max-width:270px}}
 @media(max-height:650px) and (min-width:651px){.fc-menu-body{padding-top:22px;padding-bottom:65px}.fc-menu .fc-brand h1{font-size:54px}.fc-menu .fc-brand p{margin-top:10px;font-size:8px}.fc-menu-kicker{margin:18px 0 8px}.fc-main-menu button{min-height:32px;padding:5px 10px 5px 0;font-size:23px}.fc-main-menu{gap:0}.fc-menu-description{margin-top:8px;font-size:10px}.fc-menu-footer{min-height:44px}.fc-launch{padding-top:25px}.fc-launch .fc-brand h1{font-size:65px}.fc-start-block{padding-top:12vh}.fc-sound-hint{margin-top:18px}}
 @media(prefers-reduced-motion:reduce){.fc-cover,.fc-dust i,.fc-start{animation:none}.fc-main-menu button{transition:none}}
+/* Account entry stays explicit; guest play remains the main start action. */
+.fc-auth-actions{display:flex;justify-content:center;gap:8px}
+.fc-auth-actions button{min-height:44px;padding:10px 15px;background:#0b1520e6;border:1px solid #85c9bf77;color:var(--text);font:800 12px 'DM Sans',sans-serif;letter-spacing:.05em}
+.fc-auth-actions button.fc-auth-create{background:var(--accent);color:var(--background);border-color:var(--accent)}
+.fc-launch-auth{margin:22px auto 0;max-width:390px}
+.fc-launch-auth>span{display:block;font-size:8px;letter-spacing:.13em;color:var(--muted);margin-bottom:10px}
+.fc-launch-auth small{display:block;color:var(--muted);font-size:10px;margin-top:10px}
+.fc-guest-entry{position:absolute;top:24px;right:clamp(24px,4vw,60px);text-align:right;z-index:3}
+.fc-guest-entry>span{display:block;color:var(--muted);font-size:8px;letter-spacing:.14em;margin-bottom:7px}
+.fc-guest-entry .fc-auth-actions{justify-content:flex-end}
+@media(max-width:650px){.fc-guest-entry{top:14px;right:20px}.fc-guest-entry .fc-auth-actions button{padding:9px 11px;font-size:10px}.fc-launch-auth{margin-top:18px}.fc-launch-auth>span{font-size:7px}}
+@media(max-height:600px){.fc-launch .fc-start-block{padding-top:3svh}.fc-launch-auth{margin-top:12px}.fc-launch-auth>span{display:none}.fc-launch-auth small{margin-top:5px}.fc-launch .fc-sound-hint{margin-top:12px}}
+@media(max-width:650px){.fc-launch .fc-start{white-space:nowrap;font-size:26px;letter-spacing:.16em;gap:12px;padding:16px 12px}}

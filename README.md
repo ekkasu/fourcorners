@@ -6,7 +6,7 @@ goals and you're out. The last one standing wins.
 
 ## Run locally
 
-Install Node.js 20+ and run:
+Install Node.js 22.13+ and run:
 
 ```bash
 npm install
@@ -107,3 +107,40 @@ For friends on the same Wi-Fi, run `npm run build` then `npm start`. Everyone mu
 Run `npm test` for simulation, graphics and navigation checks. With the game server running, run `TEST_WS_URL=ws://localhost:3001/ws node tests/multiplayer-integration.mjs` to verify four connected clients, host-only start, readiness, room capacity, shared snapshots, movement, disconnects and host migration.
 
 The default Uncompleted Building court uses the exposed sandcrete walls, empty openings, lintels, rebar and timber supports in [this Adenta New-Legon photo reference](https://ghanaproperty.org/africa/ghana/greater-accra-region/property/3-bedroom-uncompleted-house-for-sale-at-adenta-new-legon-1) as architectural inspiration. The arena is original 3D geometry and procedural materials; the listing photographs are not included in the game.
+
+
+## Player accounts and leaderboard
+
+Run the full server (`npm run build && npm start`) for sign-up, sign-in, profiles,
+and leaderboards. With Vite, also start `npm run server`; Vite proxies `/api` and `/ws`.
+Accounts use a unique username and a password of at least 12 characters. Player
+names and bios are public; passwords are hashed with scrypt. Sessions use HttpOnly,
+SameSite cookies and expire after 30 days. Password recovery is not implemented.
+Guest play remains available.
+
+Leaderboard records come only from the authoritative multiplayer simulation.
+A finished match must last at least 30 seconds and have at least two distinct
+signed-in accounts. Wins earn 3 points, draws 1; ties are ordered by wins, goals,
+then username. Solo practice and offline browser stats never affect rankings.
+Profile editing cannot change match stats. Repeated processing of the same
+match cannot award points twice. Leaving a started match is a loss if a ranked
+result is reached. Players must sign in before joining a room.
+
+### Persistent account storage
+
+The server uses SQLite via Node's built-in `node:sqlite` (Node 22.13 or later).
+By default it stores accounts in `server/data/accounts.sqlite`; this private
+folder is ignored by Git. For deployment, set `ACCOUNT_DB` to a file on a
+**persistent volume**, such as `/var/data/fourcorners/accounts.sqlite`. Back up
+the database with a SQLite-aware backup tool, including WAL consistency. Run a
+single server instance against the database.
+
+The existing free Render service has ephemeral storage. Configure a persistent
+volume on your host before collecting real accounts; otherwise accounts will be
+lost on a redeploy. No hosting plan or paid resources are changed by this feature.
+Serve the game, `/api`, and `/ws` from the same public origin for account cookies.
+A static-only Vercel deployment does not run the account API. Use the full Node
+server or configure a same-origin backend proxy before enabling accounts there.
+For HTTPS hosting behind a proxy, set `COOKIE_SECURE=true`; `NODE_ENV=production`
+also enables Secure cookies. Set `PUBLIC_ORIGIN` to the exact HTTPS app origin if
+your proxy changes the Host header. Keep HTTPS enabled in production.
