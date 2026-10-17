@@ -40,7 +40,7 @@ export class AccountStore{
   // Only this server calls record; there is deliberately no client score API.
   if(!match.finished||match.elapsed<30)return false;
   const entries=match.players.filter(p=>p.accountId);
-  if(entries.length<2||new Set(entries.map(p=>p.accountId)).size!==entries.length)return false;
+  if(entries.length<1||new Set(entries.map(p=>p.accountId)).size!==entries.length)return false;
   this.db.exec('BEGIN IMMEDIATE');
   try{
    if(!this.db.prepare('INSERT OR IGNORE INTO results VALUES(?,?)').run(matchId,Date.now()).changes){this.db.exec('ROLLBACK');return false}
@@ -48,6 +48,14 @@ export class AccountStore{
    for(const p of entries){const won=match.winner===p.id?1:0,draw=!match.winner&&p.connected&&p.lives>0?1:0;update.run(won,draw,p.goals,won*3+draw,p.accountId)}
    this.db.exec('COMMIT');return true;
   }catch(e){this.db.exec('ROLLBACK');throw e}
+ }
+ beginSolo(id){const token=randomBytes(24).toString('hex');this.solo??=new Map();const now=Date.now();for(const[k,v]of this.solo)if(now-v.started>3600000)this.solo.delete(k);if(this.solo.size>10000)throw new Error('Please try again later.');this.solo.set(token,{id,started:now});return token}
+ finishSolo(id,{ticket,result}={}){
+  const entry=this.solo?.get(ticket);
+  if(!entry||entry.id!==id)throw new Error('Match session expired. Start a new match.');
+  if(!result||!['won','lost'].includes(result.result)||!['ffa','training'].includes(result.mode)||!Number.isFinite(result.time)||result.time<1||result.time>(Date.now()-entry.started)/1000+5||!Number.isInteger(result.stats?.goals)||result.stats.goals<0||result.stats.goals>100)throw new Error('Invalid match result.');
+  const match={finished:true,elapsed:Math.max(30,result.time),winner:result.result==='won'?'solo-player':'ai',players:[{id:'solo-player',accountId:id,goals:result.stats.goals,lives:result.result==='won'?1:0,connected:true}]};
+  const saved=this.record('solo:'+ticket,match);this.solo.delete(ticket);return saved;
  }
  close(){this.db.close()}
 }

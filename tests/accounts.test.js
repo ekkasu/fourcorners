@@ -49,7 +49,7 @@ test('verified results are ranked once, persist totals and exclude guests or sho
  assert.equal(s.leaderboard()[0].id,a.id);assert.equal(s.profile(b.id).rank,2);
  assert.equal(s.record('short',{...match,elapsed:10}),false);
  assert.equal(s.record('unfinished',{...match,finished:false}),false);
- assert.equal(s.record('guest',{...match,players:[match.players[0],{...match.players[1],accountId:null}]}),false);
+ assert.equal(s.record('guest',{...match,players:match.players.map(p=>({...p,accountId:null}))}),false);
  assert.equal(s.record('duplicate-account',{...match,players:[match.players[0],{...match.players[1],accountId:a.id}]}),false);
  s.record('draw',{...match,winner:null,players:match.players.map(p=>({...p,lives:1}))});
  assert.equal(s.profile(a.id).points,4);assert.equal(s.profile(b.id).points,1);assert.equal(s.profile(a.id).draws,1);
@@ -75,4 +75,15 @@ test('auth API limits repeated attempts',async t=>{
  const s=new AccountStore(':memory:');t.after(()=>s.close());const api=accountApi(s);
  for(let i=0;i<15;i++)await request(api,'unknown',{method:'POST',body:{}});
  assert.equal((await request(api,'signup',{method:'POST',body:credentials('ama')})).status,429);
+});
+
+test('solo result belongs to the signed-in match session and can only save once',async t=>{
+ const {store:s,a,b}=await setup();t.after(()=>s.close());
+ const ticket=s.beginSolo(a.id),result={result:'won',mode:'ffa',time:1,stats:{goals:3}};
+ assert.throws(()=>s.finishSolo(b.id,{ticket,result}),/session/);
+ assert.ok(s.finishSolo(a.id,{ticket,result}));
+ assert.equal(s.profile(a.id).points,3);assert.equal(s.profile(a.id).matches,1);
+ assert.equal(s.leaderboard()[0].id,a.id);
+ assert.throws(()=>s.finishSolo(a.id,{ticket,result}),/session/);
+ const other=s.beginSolo(a.id);assert.throws(()=>s.finishSolo(a.id,{ticket:other,result:{...result,time:999}}),/Invalid/);
 });

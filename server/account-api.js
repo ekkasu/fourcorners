@@ -34,6 +34,8 @@ export function accountApi(store){
     const profile=await store[pathname==='/api/signup'?'signup':'login'](body);store.logout(token);cookie(store.session(profile.id));return send(200,{user:profile});
    }
    if(pathname==='/api/logout'){store.logout(token);cookie('');return send(200,{user:null})}
+   if(pathname==='/api/matches/start'){if(!user)return send(401,{error:'Sign in to save match points.'});return send(200,{ticket:store.beginSolo(user.id)})}
+   if(pathname==='/api/matches/finish'){if(!user)return send(401,{error:'Sign in to save match points.'});try{store.finishSolo(user.id,body);return send(200,{user:store.profile(user.id)})}catch(e){return send(400,{error:e.message})}}
    if(pathname==='/api/profile'){if(!user)return send(401,{error:'Sign in to edit your profile.'});return send(200,{user:store.update(user.id,body)})}
    return send(404,{error:'Not found.'});
   }catch(e){if(e.message?.match(/username|password|Player name|player name|bio/))return send(400,{error:e.message});console.error('Account request failed:',e.code||e.name);return send(500,{error:'Could not complete the request. Please try again.'})}

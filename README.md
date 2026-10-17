@@ -118,13 +118,15 @@ names and bios are public; passwords are hashed with scrypt. Sessions use HttpOn
 SameSite cookies and expire after 30 days. Password recovery is not implemented.
 Guest play remains available.
 
-Leaderboard records come only from the authoritative multiplayer simulation.
-A finished match must last at least 30 seconds and have at least two distinct
-signed-in accounts. Wins earn 3 points, draws 1; ties are ordered by wins, goals,
-then username. Solo practice and offline browser stats never affect rankings.
-Profile editing cannot change match stats. Repeated processing of the same
-match cannot award points twice. Leaving a started match is a loss if a ranked
-result is reached. Players must sign in before joining a room.
+Completed solo and multiplayer matches save to the signed-in profile. Wins earn
+3 points and multiplayer draws earn 1; ties use wins, goals, then username.
+Multiplayer results come from the authoritative simulation and need at least one
+signed-in player and 30 seconds of play. Solo results use a session-bound,
+single-use match ticket with time and score validation. Solo simulation runs in
+the browser, so those results are client-reported, not cheat-proof. Historical
+local guest matches cannot be reliably attributed and are not imported.
+Profile editing cannot change match stats. Repeated processing cannot award
+points twice. Sign in before starting a match to save its result.
 
 ### Persistent account storage
 
