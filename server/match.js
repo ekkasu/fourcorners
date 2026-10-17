@@ -1,4 +1,3 @@
-import {steerPlayer} from '../src/steering.js';
 import {stepDribble} from '../src/dribbling.js';
 import {crossedGoal,collideGoalBlocks,GOAL_WIDTH,GOAL_CLEAR_HEIGHT,PLAYER_LIMIT,confineBall,BALL_RADIUS} from '../src/court-layout.js';
 export const ARENAS=['uncompleted','accra','kumasi','village','school','london'];
@@ -24,7 +23,7 @@ export function stepMatch(m,dt=1/60){
  for(const p of m.players){
   if(!p.lives||!p.connected)continue;if(m.elapsed-p.lastInput>.35){p.input={};p.vx=p.vz=0}
   const c=p.input,len=Math.max(1,Math.hypot(c.x||0,c.z||0)),run=c.sprint&&p.stamina>.05&&len>0,speed=run?7.5:5;
-  p.stamina=clamp(p.stamina+(run?-.3:.18)*dt,0,1);steerPlayer(p,c.x||0,c.z||0,speed,dt);
+  p.stamina=clamp(p.stamina+(run?-.3:.18)*dt,0,1);const response=1-Math.exp(-12*dt);p.vx+=((c.x||0)/len*speed-p.vx)*response;p.vz+=((c.z||0)/len*speed-p.vz)*response;
   p.x=clamp(p.x+p.vx*dt,-PLAYER_LIMIT,PLAYER_LIMIT);p.z=clamp(p.z+p.vz*dt,-PLAYER_LIMIT,PLAYER_LIMIT);if(Math.hypot(p.vx,p.vz)>.1)p.angle=Math.atan2(p.vx,p.vz);p.cooldown=Math.max(0,p.cooldown-dt);
   if(c.shoot&&p.charge===null)p.charge=m.elapsed;
   const released=(c.release||0)>p.lastRelease||(!c.shoot&&p.charge!==null);
