@@ -1,5 +1,6 @@
 import FrameBudget from './FrameBudget.jsx';
 import BlockGoal from './BlockGoal.jsx';
+import {angleDelta} from './online-motion.js';
 import {broadcastView,BALL_RADIUS} from './court-layout.js';
 import * as THREE from 'three';
 import React,{Suspense,useRef} from 'react';
@@ -10,13 +11,25 @@ import {useGraphics,usePageVisible,renderDpr} from './graphics.js';
 const COLORS=['#f2cd48','#df5044','#438ee7','#43b983'];
 const PATCHES=Array.from({length:12},(_,i)=>{const y=1-(i+.5)/6,r=Math.sqrt(1-y*y),a=i*2.399963229728653,v=new THREE.Vector3(Math.cos(a)*r,y,Math.sin(a)*r);return {position:v.clone().multiplyScalar(BALL_RADIUS*1.006).toArray(),quaternion:new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1),v)}});
 const GOALS=[[0,-11],[11,0],[0,11],[-11,0]];
-function OnlineWorld({arena,network,commands,clientId,Player,roster,graphics}){
- const groups=useRef({}),ball=useRef();
+function OnlineWorld({arena,connection,commands,clientId,Player,roster,graphics,paused}){
+ const groups=useRef({}),ball=useRef(),lookAt=useRef(new THREE.Vector3()),cameraReady=useRef(false);
  useFrame(({camera,clock,size},delta)=>{
-  const s=network.current;if(!s)return;const blend=1-Math.exp(-18*Math.min(delta,.1));
-  for(const p of s.players){const g=groups.current[p.id];if(!g)continue;g.visible=p.connected&&p.lives>0;g.position.x+=(p.x-g.position.x)*blend;g.position.z+=(p.z-g.position.z)*blend;g.rotation.y=p.angle;Object.assign(g.userData,{clock:clock.elapsedTime,velocityX:p.vx,velocityZ:p.vz,dribbling:s.ball.owner===p.id});if(p.id===clientId){commands.current.hasBall=s.ball.owner===clientId;commands.current.stamina=p.stamina;commands.current.timeLeft=s.timeLeft}}
-  if(ball.current){ball.current.position.x+=(s.ball.x-ball.current.position.x)*blend;ball.current.position.z+=(s.ball.z-ball.current.position.z)*blend;ball.current.position.y+=(s.ball.y-ball.current.position.y)*blend;ball.current.rotation.x+=s.ball.vz*delta;ball.current.rotation.z-=s.ball.vx*delta}
-  const me=s.players.find(p=>p.id===clientId);const view=broadcastView(s.ball.x,s.ball.z,size.width/size.height,me?.x,me?.z,graphics.mobile);camera.position.x+=(view.position[0]-camera.position.x)*blend;camera.position.y+=(view.position[1]-camera.position.y)*blend;camera.position.z+=(view.position[2]-camera.position.z)*blend;camera.lookAt(...view.lookAt);if(Math.abs(camera.fov-view.fov)>.01){camera.fov=view.fov;camera.updateProjectionMatrix()}
+  const c=commands.current,blocked=paused||document.hidden;
+  const s=connection.current?.motion?.frame({x:blocked?0:(c.right?1:0)-(c.left?1:0)+(c.stickX||0),z:blocked?0:(c.down?1:0)-(c.up?1:0)+(c.stickY||0),sprint:!blocked&&!!c.sprint,shoot:!blocked&&!!c.shoot,release:Math.floor(c.shootRelease||0)},delta);
+  if(!s)return;const blend=1-Math.exp(-12*Math.min(delta,.1));
+  for(const p of s.players){
+   const g=groups.current[p.id];if(!g)continue;
+   g.visible=p.connected&&p.lives>0;g.position.set(p.x,0,p.z);
+   g.rotation.y+=angleDelta(g.rotation.y,p.angle)*blend;
+   Object.assign(g.userData,{clock:clock.elapsedTime,velocityX:p.vx,velocityZ:p.vz,dribbling:s.ball.owner===p.id});
+   if(p.id===clientId){c.hasBall=s.ball.owner===clientId;c.stamina=p.stamina;c.timeLeft=s.timeLeft}
+  }
+  if(ball.current){ball.current.position.set(s.ball.x,s.ball.y,s.ball.z);ball.current.rotation.x+=s.ball.vz*delta;ball.current.rotation.z-=s.ball.vx*delta}
+  const me=s.players.find(p=>p.id===clientId),view=broadcastView(s.ball.x,s.ball.z,size.width/size.height,me?.x,me?.z,graphics.mobile);
+  const cameraBlend=cameraReady.current?blend:1;cameraReady.current=true;
+  camera.position.x+=(view.position[0]-camera.position.x)*cameraBlend;camera.position.y+=(view.position[1]-camera.position.y)*cameraBlend;camera.position.z+=(view.position[2]-camera.position.z)*cameraBlend;
+  lookAt.current.x+=(view.lookAt[0]-lookAt.current.x)*cameraBlend;lookAt.current.y+=(view.lookAt[1]-lookAt.current.y)*cameraBlend;lookAt.current.z+=(view.lookAt[2]-lookAt.current.z)*cameraBlend;
+  camera.lookAt(lookAt.current);if(Math.abs(camera.fov-view.fov)>.01){camera.fov+=(view.fov-camera.fov)*cameraBlend;camera.updateProjectionMatrix()}
  });
  return <><color attach="background" args={['#c9dbe6']}/><fog attach="fog" args={['#e6e1d6',42,120]}/><ambientLight intensity={.2}/><hemisphereLight args={['#dcefff','#b08a62',.75]}/><directionalLight position={[16,27,10]} color="#ffe6bd" intensity={4.3} castShadow={graphics.shadows} shadow-mapSize={[graphics.shadowSize,graphics.shadowSize]} shadow-bias={-.0004} shadow-normalBias={.03} shadow-radius={4} shadow-camera-left={-29} shadow-camera-right={29} shadow-camera-top={29} shadow-camera-bottom={-29}/><Suspense fallback={null}><ArenaEnvironment arena={arena} detailed={graphics.props}/></Suspense>
  {GOALS.map(([x,z],side)=><group key={side} position={[x,0,z]} rotation={[0,side%2?Math.PI/2:0,0]}><BlockGoal active={roster.some(p=>p.side===side)}/></group>)}

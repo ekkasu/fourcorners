@@ -1,5 +1,6 @@
 import {stepDribble} from '../src/dribbling.js';
-import {crossedGoal,collideGoalBlocks,GOAL_WIDTH,GOAL_CLEAR_HEIGHT,PLAYER_LIMIT,confineBall,BALL_RADIUS} from '../src/court-layout.js';
+import {movementInput,stepPlayerMovement} from '../src/online-movement.js';
+import {crossedGoal,collideGoalBlocks,GOAL_CLEAR_HEIGHT,confineBall,BALL_RADIUS} from '../src/court-layout.js';
 export const ARENAS=['uncompleted','accra','kumasi','village','school','london'];
 const HOMES=[[0,7],[0,-7],[7,0],[-7,0]],SIDES=[2,0,1,3];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -9,7 +10,10 @@ export function createMatch(players,settings={}){
 }
 export function acceptInput(match,id,m){
  const p=match.players.find(p=>p.id===id);if(!p||!p.connected||!p.lives||match.finished)return;
- p.input={x:clamp(Number(m.x)||0,-1,1),z:clamp(Number(m.z)||0,-1,1),sprint:m.sprint===true,shoot:m.shoot===true,release:Number.isSafeInteger(m.release)&&m.release>=0?m.release:0};p.lastInput=match.elapsed;
+ const seq=Number.isSafeInteger(m.seq)&&m.seq>=0?m.seq:0;
+ if(seq<(p.inputSeq||0))return;
+ if(seq!==p.inputSeq){p.inputSeq=seq;p.inputTicks=0}
+ p.input=movementInput(m);p.lastInput=match.elapsed;
 }
 function announce(m,event){m.event={...event,id:++m.eventId}}
 function finish(m,reason){const alive=m.players.filter(p=>p.connected&&p.lives>0),best=Math.max(0,...alive.map(p=>p.lives)),leaders=alive.filter(p=>p.lives===best);m.finished=true;m.winner=leaders.length===1?leaders[0].id:null;announce(m,{type:'finished',reason,winner:m.winner})}
@@ -22,9 +26,7 @@ export function stepMatch(m,dt=1/60){
  const b=m.ball,previousBall={x:b.x,z:b.z,y:b.y};
  for(const p of m.players){
   if(!p.lives||!p.connected)continue;if(m.elapsed-p.lastInput>.35){p.input={};p.vx=p.vz=0}
-  const c=p.input,len=Math.max(1,Math.hypot(c.x||0,c.z||0)),run=c.sprint&&p.stamina>.05&&len>0,speed=run?7.5:5;
-  p.stamina=clamp(p.stamina+(run?-.3:.18)*dt,0,1);const response=1-Math.exp(-12*dt);p.vx+=((c.x||0)/len*speed-p.vx)*response;p.vz+=((c.z||0)/len*speed-p.vz)*response;
-  p.x=clamp(p.x+p.vx*dt,-PLAYER_LIMIT,PLAYER_LIMIT);p.z=clamp(p.z+p.vz*dt,-PLAYER_LIMIT,PLAYER_LIMIT);if(Math.hypot(p.vx,p.vz)>.1)p.angle=Math.atan2(p.vx,p.vz);p.cooldown=Math.max(0,p.cooldown-dt);
+  const c=p.input;stepPlayerMovement(p,c,dt);p.inputTicks=(p.inputTicks||0)+1;p.cooldown=Math.max(0,p.cooldown-dt);
   if(c.shoot&&p.charge===null)p.charge=m.elapsed;
   const released=(c.release||0)>p.lastRelease||(!c.shoot&&p.charge!==null);
   if(released){p.lastRelease=Math.max(p.lastRelease,c.release||0);if(b.owner===p.id){const charge=clamp((m.elapsed-(p.charge??m.elapsed))/.9,0,1),speed=10+11*charge;b.owner=null;b.vx=Math.sin(p.angle)*speed;b.vz=Math.cos(p.angle)*speed;b.vy=.6+charge*3;b.last=p.id;p.shots++;p.cooldown=.35;announce(m,{type:'kick',player:p.id})}else if(p.cooldown===0&&Math.hypot(b.x-p.x,b.z-p.z)<1.6&&b.y<.9){b.owner=p.id;b.last=p.id;p.cooldown=.4;announce(m,{type:'tackle',player:p.id})}p.charge=null}

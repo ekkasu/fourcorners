@@ -99,7 +99,10 @@ Friends can join the deployed game from different networks using a room invite l
 
 Run `npm test` for simulation, graphics and navigation checks. Cloud integration should verify two Firebase identities can create/join/ready/start, share state and controls, and save results once. Outsiders must be unable to read rooms; guests must be unable to write another player’s controls or the host state. Run `FC_API_BASE=https://fourkorners.online node tests/firebase-client-integration.mjs`
 to verify movement and synchronized player positions using two isolated guest clients,
-including a device clock difference. Temporary guest accounts are cleaned up afterward.
+including a device clock difference, immediate local movement, direction reversals,
+smooth playback between packets, and stopping. Temporary guest accounts are cleaned up afterward.
+Private matches predict the local player's movement using the host's movement model,
+reconcile acknowledged inputs, and buffer remote players and the ball for smooth playback.
 The previous WebSocket integration script is legacy and no longer applies.
 
 The default Uncompleted Building court uses the exposed sandcrete walls, empty openings, lintels, rebar and timber supports in [this Adenta New-Legon photo reference](https://ghanaproperty.org/africa/ghana/greater-accra-region/property/3-bedroom-uncompleted-house-for-sale-at-adenta-new-legon-1) as architectural inspiration. The arena is original 3D geometry and procedural materials; the listing photographs are not included in the game.

@@ -8,10 +8,14 @@ export class RoomSimulation{
  constructor(match,{publish,onFinish=()=>{},onError=()=>{},now=()=>performance.now()}={}){
   this.match=match;this.publish=publish;this.onFinish=onFinish;this.onError=onError;this.now=now;this.inputs=new Map();this.previous=now();this.lastPublish=-Infinity;this.accumulator=0;this.pending=0;this.finished=false;
  }
- receiveInputs(values={}){const now=this.now();for(const [id,input] of Object.entries(values||{})){
+ receiveInput(id,input){
   const old=this.inputs.get(id)?.input;
-  if(!old||['at','x','z','shoot','sprint','release'].some(key=>old[key]!==input[key]))this.inputs.set(id,{input,receivedAt:now});
- }for(const id of this.inputs.keys())if(!values?.[id])this.inputs.delete(id)}
+  if(old&&Number.isSafeInteger(input.seq)&&input.seq<(old.seq||0))return;
+  if(!old||['seq','at','x','z','shoot','sprint','release'].some(key=>old[key]!==input[key]))this.inputs.set(id,{input,receivedAt:this.now()});
+ }
+ receiveInputs(values={}){for(const [id,input] of Object.entries(values||{}))this.receiveInput(id,input);
+  for(const id of this.inputs.keys())if(!values?.[id])this.inputs.delete(id);
+ }
  tick(presence={}){
   if(this.finished)return;
   const now=this.now();this.accumulator+=Math.min(Math.max(0,now-this.previous)/1000,.2);this.previous=now;

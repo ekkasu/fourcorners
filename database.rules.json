@@ -15,6 +15,7 @@
       "shoot": {".validate":"newData.isBoolean()"},
       "release": {".validate":"newData.isNumber() && newData.val() >= 0"},
       "at": {".validate":"newData.isNumber() && newData.val() <= now + 10000"},
+      "seq": {".validate":"newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000000 && newData.val() % 1 === 0"},
       "$other": {".validate":false}
      }
     },
