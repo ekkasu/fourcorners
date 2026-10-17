@@ -146,3 +146,12 @@ server or configure a same-origin backend proxy before enabling accounts there.
 For HTTPS hosting behind a proxy, set `COOKIE_SECURE=true`; `NODE_ENV=production`
 also enables Secure cookies. Set `PUBLIC_ORIGIN` to the exact HTTPS app origin if
 your proxy changes the Host header. Keep HTTPS enabled in production.
+
+### Vercel account API proxy
+
+`api/[...path].js` forwards `/api/*` to the deployed Node account server, preserving
+HttpOnly cookies on the game's domain. Set `ACCOUNT_SERVER_URL` to the HTTPS Node
+server origin in Vercel. The existing `VITE_ROOM_SERVER_URL` is also accepted as a
+fallback. Deploy the latest Node server as well as the frontend; the static Vercel
+build alone cannot store accounts. Configure persistent `ACCOUNT_DB` storage on
+that backend. The proxy returns a clear 503 when no backend is configured.
