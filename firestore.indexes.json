@@ -1,0 +1,111 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "players",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ranked",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "points",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "wins",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "goals",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "username",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "players",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ranked",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "points",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "players",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ranked",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "points",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "wins",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "players",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ranked",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "points",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "wins",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "goals",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "players",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ranked",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "points",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "wins",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "goals",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "username",
+          "order": "ASCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

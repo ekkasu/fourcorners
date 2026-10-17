@@ -1,7 +1,6 @@
 import {sessionToken} from './accounts.js';
-export function allowedOrigin(req){
- try{return !req.headers.origin||new URL(req.headers.origin).host===req.headers.host||req.headers.origin===process.env.PUBLIC_ORIGIN}catch{return false}
-}
+import {allowedOrigin} from './origin.js';
+export {allowedOrigin} from './origin.js';
 export function accountApi(store){
  const limits=new Map();
  return async function(req,res){
