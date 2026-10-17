@@ -3,6 +3,7 @@ import {signInAnonymously} from 'firebase/auth';
 import {auth,authReady,firebaseApp} from './firebase.js';
 import {createMatch} from '../server/match.js';
 import {RoomSimulation} from './room-simulation.js';
+import {movementInput} from './online-movement.js';
 import {OnlineMotion} from './online-motion.js';
 export class FirebaseRoomConnection{
  readyState=0;subscriptions=[];queue=Promise.resolve();code=null;match=null;lastMatch=null;closed=false;
@@ -11,7 +12,7 @@ export class FirebaseRoomConnection{
  async initialize(){try{await authReady;if(!auth.currentUser)await signInAnonymously(auth);if(this.closed)return;this.uid=auth.currentUser.uid;this.db=getDatabase(firebaseApp);this.readyState=1;this.emit({type:'connected',id:this.uid});this.onopen?.()}catch{this.emit({type:'error',message:'Firebase connection failed. Check your connection and try again.'});this.close()}}
  async request(action,body={}){const token=await auth.currentUser.getIdToken();const response=await fetch('/api/rooms/'+action,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({...body,code:body.code||this.code})});let result;try{result=await response.json()}catch{throw new Error('Room service is unavailable. Try again.')};if(!response.ok)throw new Error(result.error||'Room request failed.');return result}
  writeInput(m){if(!this.code||!this.meta?.started||this.closed)return;
-  const input={x:Number(m.x)||0,z:Number(m.z)||0,sprint:!!m.sprint,shoot:!!m.shoot,release:Number(m.release)||0,seq:Number.isSafeInteger(m.seq)?m.seq:0};
+  const input={...movementInput(m),seq:Number.isSafeInteger(m.seq)?m.seq:0};
   this.runner?.receiveInput(this.uid,input);
   set(ref(this.db,`rooms/${this.code}/inputs/${this.uid}`),{...input,at:serverTimestamp()}).catch(()=>{const now=performance.now();if(!this.inputErrorAt||now-this.inputErrorAt>5000){this.inputErrorAt=now;this.emit({type:'error',message:'Movement could not be shared. Check your connection and rejoin the room.'})}});
  }

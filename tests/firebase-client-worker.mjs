@@ -15,7 +15,7 @@ socket.onopen=()=>process.send({type:'open',uid:socket.uid});
 socket.onmessage=e=>{const m=JSON.parse(e.data);if(['error','room','matchStart'].includes(m.type))process.send(m);if(m.type==='snapshot')process.send({type:'position',tick:m.tick,players:m.players.map(p=>({id:p.id,x:p.x,z:p.z,vx:p.vx,vz:p.vz}))})};
 process.on('message',async m=>{
  if(m.type==='move'){input={...input,x:1};measuring=true;lastShown=null;maxStep=0;movementFrames=0}
- else if(m.type==='turn')input={...input,x:-1};
+ else if(m.type==='turn')input={...input,x:-1,control:true};
  else if(m.type==='halt'){input={...input,x:0};process.send({type:'motion',maxStep,movementFrames});measuring=false}
  else if(m.type==='stop'){clearInterval(interval);await socket.leave();socket.close();if(auth.currentUser?.isAnonymous)await deleteUser(auth.currentUser);process.exit(0)}
  else socket.send(JSON.stringify(m));

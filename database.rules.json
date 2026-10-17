@@ -12,6 +12,8 @@
       "x": {".validate":"newData.isNumber() && newData.val() >= -2 && newData.val() <= 2"},
       "z": {".validate":"newData.isNumber() && newData.val() >= -2 && newData.val() <= 2"},
       "sprint": {".validate":"newData.isBoolean()"},
+      "control": {".validate":"newData.isBoolean()"},
+      "aim": {".validate":"newData.isNumber() && newData.val() >= -3.142 && newData.val() <= 3.142"},
       "shoot": {".validate":"newData.isBoolean()"},
       "release": {".validate":"newData.isNumber() && newData.val() >= 0"},
       "at": {".validate":"newData.isNumber() && newData.val() <= now + 10000"},

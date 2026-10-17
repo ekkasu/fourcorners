@@ -5,7 +5,7 @@ const STEP=1/60,BUFFER_MS=100,EXTRAPOLATE_MS=100,STALE_MS=600;
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
 const mix=(a,b,t)=>a+(b-a)*t;
 export const angleDelta=(from,to)=>Math.atan2(Math.sin(to-from),Math.cos(to-from));
-const sameInput=(a,b)=>a&&b&&['x','z','sprint','shoot','release'].every(key=>a[key]===b[key]);
+const sameInput=(a,b)=>a&&b&&['x','z','sprint','control','shoot','aim','release'].every(key=>a[key]===b[key]);
 
 function interpolateBody(a,b,t){
  const body={...b};
@@ -38,7 +38,7 @@ export class OnlineMotion{
    const ack=player.inputSeq||0,ticks=player.inputTicks||0;
    this.history=this.history.filter(frame=>frame.seq>ack||(frame.seq===ack&&frame.step>ticks));
    this.predicted={...player};
-   if(!state.pause&&!state.finished&&player.connected&&player.lives>0){for(const frame of this.history)stepPlayerMovement(this.predicted,frame.input,STEP)}else this.history=[];
+   if(!state.pause&&!state.finished&&player.connected&&player.lives>0){for(const frame of this.history)stepPlayerMovement(this.predicted,frame.input,STEP,frame.context)}else this.history=[];
    // Preserve the displayed position when reconciling, then ease out the small
    // error. Kickoffs and elimination are deliberate resets, not movement errors.
    if(!reset){this.offset={x:oldX-this.predicted.x,z:oldZ-this.predicted.z};if(Math.hypot(this.offset.x,this.offset.z)>3)this.offset={x:0,z:0}}
@@ -60,8 +60,9 @@ export class OnlineMotion{
   this.accumulator+=dt;
   while(this.accumulator>=STEP){
    if(!stale&&!state.pause&&!state.finished&&this.predicted?.connected&&this.predicted.lives>0){
-    stepPlayerMovement(this.predicted,input,STEP);
-    this.history.push({seq:this.seq,step:++this.inputStep,input});
+    const context={ball:{x:state.ball.x,z:state.ball.z},hasBall:state.ball.owner===this.clientId};
+    stepPlayerMovement(this.predicted,input,STEP,context);
+    this.history.push({seq:this.seq,step:++this.inputStep,input,context});
     if(this.history.length>120)this.history.shift();
    }
    this.accumulator-=STEP;

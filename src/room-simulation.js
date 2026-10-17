@@ -11,7 +11,7 @@ export class RoomSimulation{
  receiveInput(id,input){
   const old=this.inputs.get(id)?.input;
   if(old&&Number.isSafeInteger(input.seq)&&input.seq<(old.seq||0))return;
-  if(!old||['seq','at','x','z','shoot','sprint','release'].some(key=>old[key]!==input[key]))this.inputs.set(id,{input,receivedAt:this.now()});
+  if(!old||['seq','at','x','z','shoot','sprint','control','aim','release'].some(key=>old[key]!==input[key]))this.inputs.set(id,{input,receivedAt:this.now()});
  }
  receiveInputs(values={}){for(const [id,input] of Object.entries(values||{}))this.receiveInput(id,input);
   for(const id of this.inputs.keys())if(!values?.[id])this.inputs.delete(id);

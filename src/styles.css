@@ -128,3 +128,5 @@
 .touch-rule.window{width:180px}
 
 .match-intro{position:absolute;inset:0;z-index:16;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#0b1520c9;color:var(--text);pointer-events:auto}.match-intro>span{font-size:40px}.match-intro strong{font:900 40px "Barlow Condensed",sans-serif;letter-spacing:.12em}
+
+.touch-utility{display:flex;flex-direction:column;align-items:center;gap:8px}.touch-btn.precision{width:64px;height:64px;background:#213c48eb;border-color:#85c9bf;color:#e4eff2;font-size:10px}.touch-btn.precision[aria-pressed="true"]{background:#85c9bf;color:#12282d;box-shadow:0 0 0 3px #85c9bf40}

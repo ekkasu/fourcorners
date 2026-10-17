@@ -28,7 +28,7 @@ function finish(error){
  try{if(error)throw error;for(const client of clients){assert.ok(client.last,'both clients receive snapshots');for(const p of client.last.players)assert.ok(p.x>2,'both players move even with different clocks')}
   for(const p of clients[0].last.players){const remote=clients[1].last.players.find(q=>q.id===p.id);assert.ok(Math.abs(p.x-remote.x)<.2,'both clients agree on settled player positions')}
   for(const client of clients){assert.ok(client.motion?.movementFrames>60,'movement continues between network packets');assert.ok(client.motion.maxStep<.4,`movement should not visibly jump: ${client.motion.maxStep}`)}
-  console.log('PASS: real Firebase clients create/join/start, run, reverse, stop, and synchronize with a five-second clock difference.');
+  console.log('PASS: real Firebase clients create/join/start, run, jockey through a turn, stop, and synchronize with a five-second clock difference.');
   console.log('Largest displayed movement per frame:',clients.map(c=>c.motion.maxStep.toFixed(3)).join(', '),'court units.');
  }catch(e){process.exitCode=1;console.error(e.message);console.error(JSON.stringify(clients.map(c=>({tick:c.last?.tick,positions:c.last?.players.map(p=>({x:p.x,z:p.z})),motion:c.motion}))))}finally{workers.forEach(w=>w.send({type:'stop'}));setTimeout(()=>workers.forEach(w=>w.kill()),5000).unref()}
 }

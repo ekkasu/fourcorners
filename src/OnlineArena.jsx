@@ -15,7 +15,7 @@ function OnlineWorld({arena,connection,commands,clientId,Player,roster,graphics,
  const groups=useRef({}),ball=useRef(),lookAt=useRef(new THREE.Vector3()),cameraReady=useRef(false);
  useFrame(({camera,clock,size},delta)=>{
   const c=commands.current,blocked=paused||document.hidden;
-  const s=connection.current?.motion?.frame({x:blocked?0:(c.right?1:0)-(c.left?1:0)+(c.stickX||0),z:blocked?0:(c.down?1:0)-(c.up?1:0)+(c.stickY||0),sprint:!blocked&&!!c.sprint,shoot:!blocked&&!!c.shoot,release:Math.floor(c.shootRelease||0)},delta);
+  const s=connection.current?.motion?.frame({x:blocked?0:(c.right?1:0)-(c.left?1:0)+(c.stickX||0),z:blocked?0:(c.down?1:0)-(c.up?1:0)+(c.stickY||0),sprint:!blocked&&!!c.sprint,control:!blocked&&!!c.control,aim:c.aimAngle,shoot:!blocked&&!!c.shoot,release:Math.floor(c.shootRelease||0)},delta);
   if(!s)return;const blend=1-Math.exp(-12*Math.min(delta,.1));
   for(const p of s.players){
    const g=groups.current[p.id];if(!g)continue;
